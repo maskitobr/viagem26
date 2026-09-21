@@ -1,0 +1,1 @@
+import{searchPlaces}from"../../../../lib/places";export async function GET(r:Request){try{const u=new URL(r.url);return Response.json(await searchPlaces(u.searchParams.get("q")||"",u.searchParams.get("city")||""))}catch(e){return Response.json({error:e instanceof Error?e.message:"Busca indisponível."},{status:400})}}
