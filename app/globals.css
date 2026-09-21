@@ -121,7 +121,7 @@ a { color: var(--blue); }
 .crop-empty { display: grid; gap: 12px; justify-items: center; padding: 20px 0; text-align: center; }
 .crop { position: relative; margin: 8px auto; touch-action: none; cursor: grab; border-radius: 12px; overflow: hidden; background: #222; }
 .crop canvas { display: block; }
-.crop-mask { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at center, transparent 0, transparent 49%, rgba(0, 0, 0, .6) 50%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); }
+.crop-mask { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle closest-side at center, transparent 0, transparent calc(100% - 1px), rgba(0, 0, 0, .6) 100%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); }
 .zoom { display: flex; gap: 12px; align-items: center; justify-content: center; margin: 12px 0; font-weight: 600; font-size: 14px; } .zoom input { flex: 1; max-width: 220px; }
 .crop-actions { display: flex; justify-content: space-between; align-items: center; }
 .ag-day { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 12px 14px; margin: 12px 0; }
