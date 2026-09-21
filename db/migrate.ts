@@ -1,0 +1,10 @@
+// Migração idempotente aplicada uma vez por processo (Neon HTTP não suporta multi-statement).
+export const statements = [
+  `CREATE TABLE IF NOT EXISTS people (id text PRIMARY KEY, name text NOT NULL, color text NOT NULL, token text NOT NULL UNIQUE, is_admin boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS items (id text PRIMARY KEY, city text NOT NULL, title text NOT NULL, category text NOT NULL, address text, map_url text, place_id text, note text, rating real, price_level text, photo_name text, image_key text, created_by text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS item_votes (person_id text NOT NULL, item_id text NOT NULL, choice text NOT NULL, PRIMARY KEY (person_id, item_id))`,
+  `CREATE TABLE IF NOT EXISTS item_seen (person_id text NOT NULL, item_id text NOT NULL, seen_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (person_id, item_id))`,
+  `CREATE TABLE IF NOT EXISTS photos (id text PRIMARY KEY, person_id text NOT NULL, city text NOT NULL, item_id text, key text NOT NULL, taken_at timestamptz, size integer, created_at timestamptz NOT NULL DEFAULT now())`,
+  `CREATE INDEX IF NOT EXISTS items_city_idx ON items (city)`,
+  `CREATE INDEX IF NOT EXISTS photos_city_idx ON photos (city)`,
+];

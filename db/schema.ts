@@ -1,6 +1,51 @@
-import { integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, primaryKey, real, text, timestamp } from "drizzle-orm/pg-core";
 
-export const participants = pgTable("participants", { id: text("id").primaryKey(), name: text("name").notNull(), photo: text("photo"), createdAt: timestamp("created_at").defaultNow().notNull() });
-export const votes = pgTable("votes", { id: integer("id").primaryKey().generatedAlwaysAsIdentity(), participantId: text("participant_id").notNull(), itineraryId: text("itinerary_id").notNull(), choice: text("choice").notNull() }, (table) => [uniqueIndex("vote_once").on(table.participantId, table.itineraryId)]);
-export const comments = pgTable("comments", { id: integer("id").primaryKey().generatedAlwaysAsIdentity(), participantId: text("participant_id").notNull(), itineraryId: text("itinerary_id").notNull(), body: text("body").notNull(), createdAt: timestamp("created_at").defaultNow().notNull() });
-export const suggestions = pgTable("suggestions", { id:text("id").primaryKey(),city:text("city").notNull(),title:text("title").notNull(),category:text("category").notNull(),address:text("address"),mapQuery:text("map_query"),note:text("note"),imageKey:text("image_key"),source:text("source").notNull(),createdBy:text("created_by").notNull(),createdAt:timestamp("created_at").defaultNow().notNull() });
+// Tabelas legadas (participants/votes/comments) permanecem no banco; o app novo usa as abaixo.
+export const people = pgTable("people", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  color: text("color").notNull(),
+  token: text("token").notNull().unique(),
+  isAdmin: boolean("is_admin").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const items = pgTable("items", {
+  id: text("id").primaryKey(),
+  city: text("city").notNull(),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  address: text("address"),
+  mapUrl: text("map_url"),
+  placeId: text("place_id"),
+  note: text("note"),
+  rating: real("rating"),
+  priceLevel: text("price_level"),
+  photoName: text("photo_name"),
+  imageKey: text("image_key"),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const itemVotes = pgTable("item_votes", {
+  personId: text("person_id").notNull(),
+  itemId: text("item_id").notNull(),
+  choice: text("choice").notNull(),
+}, (t) => [primaryKey({ columns: [t.personId, t.itemId] })]);
+
+export const itemSeen = pgTable("item_seen", {
+  personId: text("person_id").notNull(),
+  itemId: text("item_id").notNull(),
+  seenAt: timestamp("seen_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [primaryKey({ columns: [t.personId, t.itemId] })]);
+
+export const photos = pgTable("photos", {
+  id: text("id").primaryKey(),
+  personId: text("person_id").notNull(),
+  city: text("city").notNull(),
+  itemId: text("item_id"),
+  key: text("key").notNull(),
+  takenAt: timestamp("taken_at", { withTimezone: true }),
+  size: integer("size"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

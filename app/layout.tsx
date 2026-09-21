@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+export const viewport = { width: "device-width", initialScale: 1, themeColor: "#123653" };
+
 export const metadata: Metadata = {
-  title: "Starter Project",
-  description: "A clean starting point for building your site.",
+  title: "Nossa Viagem 2026",
+  description: "Planejamento da viagem em família: Chicago, Dallas e Orlando.",
   other: {
     "codex-preview": "development",
   },
@@ -19,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className="antialiased">{children}</body>
     </html>
   );
