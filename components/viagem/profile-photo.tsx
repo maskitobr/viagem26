@@ -9,15 +9,20 @@ const VIEW = 280, OUT = 512;
 export function ProfilePhotoEditor({ personId, name, hasPhoto, onClose, onSaved }: { personId?: string; name: string; hasPhoto?: boolean; onClose: () => void; onSaved: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null), input = useRef<HTMLInputElement>(null);
   const [bmp, setBmp] = useState<ImageBitmap | null>(null), [zoom, setZoom] = useState(1), [pos, setPos] = useState({ x: 0, y: 0 });
+  const pointers = useRef(new Map<number, { x: number; y: number }>()), pinch = useRef<{ d: number; z: number } | null>(null);
   const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
 
-  const base = bmp ? Math.max(VIEW / bmp.width, VIEW / bmp.height) : 1, scale = base * zoom;
-  const clamp = (x: number, y: number, s = scale) => bmp ? ({ x: Math.max(-(bmp.width * s - VIEW) / 2, Math.min((bmp.width * s - VIEW) / 2, x)), y: Math.max(-(bmp.height * s - VIEW) / 2, Math.min((bmp.height * s - VIEW) / 2, y)) }) : { x, y };
+  // zoom é relativo a "foto inteira dentro do quadro"; 0,4 permite encolher bem além disso e o máximo aproxima 4x o modo "preencher".
+  const fit = bmp ? Math.min(VIEW / bmp.width, VIEW / bmp.height) : 1, fill = bmp ? Math.max(VIEW / bmp.width, VIEW / bmp.height) : 1;
+  const minZ = 0.4, maxZ = (fill / fit) * 4, scale = fit * zoom;
+  const clampZ = (z: number) => Math.max(minZ, Math.min(maxZ, z));
+  // Pode arrastar até a borda da foto encostar na borda do quadro (para foto menor que o quadro, dentro dele).
+  const clamp = (x: number, y: number, sc = scale) => bmp ? ({ x: Math.max(-Math.abs(bmp.width * sc - VIEW) / 2, Math.min(Math.abs(bmp.width * sc - VIEW) / 2, x)), y: Math.max(-Math.abs(bmp.height * sc - VIEW) / 2, Math.min(Math.abs(bmp.height * sc - VIEW) / 2, y)) }) : { x, y };
 
   function paint(c: HTMLCanvasElement, size: number) {
     if (!bmp) return;
     const k = size / VIEW, ctx = c.getContext("2d")!;
-    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, size, size);
     ctx.drawImage(bmp, (VIEW / 2 - (bmp.width * scale) / 2 + pos.x) * k, (VIEW / 2 - (bmp.height * scale) / 2 + pos.y) * k, bmp.width * scale * k, bmp.height * scale * k);
   }
   useEffect(() => { if (canvas.current) paint(canvas.current, VIEW); });
@@ -25,10 +30,10 @@ export function ProfilePhotoEditor({ personId, name, hasPhoto, onClose, onSaved 
   async function choose(file?: File) {
     if (!file) return;
     if (!file.type.startsWith("image/")) return setMsg("Escolha uma imagem.");
-    try { setBmp(await createImageBitmap(file, { imageOrientation: "from-image" })); setZoom(1); setPos({ x: 0, y: 0 }); setMsg(""); }
+    try { const b = await createImageBitmap(file, { imageOrientation: "from-image" }); setBmp(b); setZoom(Math.max(VIEW / b.width, VIEW / b.height) / Math.min(VIEW / b.width, VIEW / b.height)); setPos({ x: 0, y: 0 }); setMsg(""); }
     catch { setMsg("Não consegui abrir essa foto. Tente uma JPG ou PNG."); }
   }
-  const setZ = (z: number) => { setZoom(z); setPos((p) => clamp(p.x, p.y, base * z)); };
+  const setZ = (z: number) => { const nz = clampZ(z); setZoom(nz); setPos((p) => clamp(p.x, p.y, fit * nz)); };
 
   async function save() {
     if (!bmp) return;
@@ -62,14 +67,23 @@ export function ProfilePhotoEditor({ personId, name, hasPhoto, onClose, onSaved 
         ) : (
           <>
             <div className="crop" style={{ width: VIEW, height: VIEW }}
-              onPointerDown={(e) => { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); drag.current = { x: e.clientX, y: e.clientY, px: pos.x, py: pos.y }; }}
-              onPointerMove={(e) => { const d = drag.current; if (d) setPos(clamp(d.px + e.clientX - d.x, d.py + e.clientY - d.y)); }}
-              onPointerUp={() => (drag.current = null)} onPointerCancel={() => (drag.current = null)}
-              onWheel={(e) => setZ(Math.max(1, Math.min(4, zoom - e.deltaY / 400)))}>
+              onPointerDown={(e) => {
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if (pointers.current.size === 2) { const [a, b] = [...pointers.current.values()]; pinch.current = { d: Math.hypot(a.x - b.x, a.y - b.y), z: zoom }; drag.current = null; }
+                else drag.current = { x: e.clientX, y: e.clientY, px: pos.x, py: pos.y };
+              }}
+              onPointerMove={(e) => {
+                if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if (pointers.current.size === 2 && pinch.current) { const [a, b] = [...pointers.current.values()]; setZ(pinch.current.z * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.current.d)); return; }
+                const d = drag.current; if (d) setPos(clamp(d.px + e.clientX - d.x, d.py + e.clientY - d.y));
+              }}
+              onPointerUp={(e) => { pointers.current.delete(e.pointerId); pinch.current = null; drag.current = null; }} onPointerCancel={(e) => { pointers.current.delete(e.pointerId); pinch.current = null; drag.current = null; }}
+              onWheel={(e) => setZ(zoom * Math.exp(-e.deltaY / 500))}>
               <canvas ref={canvas} width={VIEW} height={VIEW} />
               <div className="crop-mask" />
             </div>
-            <label className="zoom">Zoom<input type="range" min={1} max={4} step={0.01} value={zoom} onChange={(e) => setZ(Number(e.target.value))} aria-label="Zoom" /></label>
+            <label className="zoom">Zoom<input type="range" min={minZ} max={maxZ} step={0.01} value={zoom} onChange={(e) => setZ(Number(e.target.value))} aria-label="Zoom" /></label>
             <div className="crop-actions">
               <button className="link" onClick={() => input.current?.click()}>Outra foto</button>
               <button className="primary" disabled={busy} onClick={save}>{busy ? "Salvando…" : "Salvar foto"}</button>
