@@ -1,0 +1,1 @@
+CREATE TABLE suggestions (id text PRIMARY KEY, city text NOT NULL, title text NOT NULL, category text NOT NULL, address text, map_query text, note text, image_key text, source text NOT NULL, created_by text NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
