@@ -1,17 +1,19 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Camera, MapPin, Plus, Sparkles } from "lucide-react";
+import { CalendarDays, Camera, MapPin, Plus, Sparkles } from "lucide-react";
 import { ApiError, CITIES, api, post, score, type Choice, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
 import { AddPlace } from "./add-place";
 import { PhotoWall } from "./photos";
 import { PlaceCard } from "./place-card";
+import { Agenda } from "./agenda";
+import { ProfilePhotoEditor } from "./profile-photo";
 
 const TRIP = new Date("2026-11-19T00:00:00-03:00");
 
 export function App() {
   const [state, setState] = useState<State | null>(null), [error, setError] = useState<string | null>(null), [denied, setDenied] = useState(false);
-  const [city, setCity] = useState<string>(CITIES[0]), [tab, setTab] = useState<"lugares" | "fotos">("lugares"), [adding, setAdding] = useState(false), [toast, setToast] = useState("");
+  const [city, setCity] = useState<string>(CITIES[0]), [tab, setTab] = useState<"lugares" | "fotos" | "agenda">("lugares"), [adding, setAdding] = useState(false), [editingPhoto, setEditingPhoto] = useState(false), [toast, setToast] = useState("");
 
   const load = useCallback(async () => {
     try { setState(await api<State>("/api/state")); setError(null); setDenied(false); }
@@ -67,7 +69,7 @@ export function App() {
           <h1>Nossa Viagem <em>2026</em></h1>
           <p className="count"><b>{days}</b> dias para embarcar</p>
         </div>
-        <div className="me"><Avatar p={state.me} size={36} /><span>{state.me.name}</span>{state.me.isAdmin && <a href="/admin">Admin</a>}</div>
+        <div className="me"><button className="me-btn" onClick={() => setEditingPhoto(true)} aria-label="Trocar minha foto de perfil" title="Trocar minha foto"><Avatar p={state.me} size={40} /></button><span>{state.me.name}</span>{state.me.isAdmin && <a href="/admin">Admin</a>}</div>
       </header>
 
       {error && <p className="notice" role="alert">{error}</p>}
@@ -75,15 +77,16 @@ export function App() {
       <nav className="tabs" aria-label="Seções">
         <button className={tab === "lugares" ? "on" : ""} onClick={() => setTab("lugares")}><MapPin size={16} /> Lugares{allNew.length > 0 && <i className="dot">{allNew.length}</i>}</button>
         <button className={tab === "fotos" ? "on" : ""} onClick={() => setTab("fotos")}><Camera size={16} /> Fotos</button>
+        <button className={tab === "agenda" ? "on" : ""} onClick={() => setTab("agenda")}><CalendarDays size={16} /> Agenda</button>
       </nav>
 
-      <div className="cities" role="tablist">
+      {tab !== "agenda" && <div className="cities" role="tablist">
         {CITIES.map((c) => (
           <button key={c} role="tab" aria-selected={city === c} className={city === c ? "on" : ""} onClick={() => setCity(c)}>
             {c}{tab === "lugares" && newBy(c).length > 0 && <i className="dot">{newBy(c).length}</i>}
           </button>
         ))}
-      </div>
+      </div>}
 
       {tab === "lugares" ? (
         <section>
@@ -93,10 +96,11 @@ export function App() {
           )}
           <button className="primary wide" onClick={() => setAdding(true)}><Plus size={18} /> Adicionar lugar em {city}</button>
           {items.length === 0 ? <p className="empty">Nenhum lugar em {city} ainda. Busque um restaurante ou passeio e adicione!</p> : (
-            <div className="list">{items.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} />)}</div>
+            <div className="list">{items.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} />)}</div>
           )}
         </section>
-      ) : <PhotoWall state={state} city={city} onChanged={load} />}
+      ) : tab === "fotos" ? <PhotoWall state={state} city={city} onChanged={load} /> : <Agenda state={state} onChanged={load} />}
+      {editingPhoto && <ProfilePhotoEditor name={state.me.name} hasPhoto={!!state.me.photo} onClose={() => setEditingPhoto(false)} onSaved={load} />}
 
       {adding && <AddPlace city={city} onClose={() => setAdding(false)} onAdded={() => { flash("Lugar adicionado!"); load(); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}

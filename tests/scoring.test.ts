@@ -35,3 +35,13 @@ describe("geo", () => {
   });
   it("rejects bad coordinates", () => { expect(validCoords(0, 0)).toBe(false); expect(validCoords(91, 0)).toBe(false); expect(validCoords(41.8, -87.6)).toBe(true); });
 });
+
+import { validDate } from "../lib/dates";
+describe("dates", () => {
+  it("accepts real trip dates only", () => {
+    expect(validDate("2026-12-03")).toBe(true);
+    expect(validDate("2026-02-30")).toBe(false);
+    expect(validDate("03/12/2026")).toBe(false);
+    expect(validDate(null)).toBe(false);
+  });
+});

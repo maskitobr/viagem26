@@ -1,6 +1,6 @@
 export type Choice = "quero" | "talvez" | "passo";
-export type Person = { id: string; name: string; color: string };
-export type Item = { id: string; placeId: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
+export type Person = { id: string; name: string; color: string; photo?: string | null };
+export type Item = { id: string; placeId: string | null; visitDate: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
 export type Photo = { id: string; personId: string; city: string; itemId: string | null; lat: number | null; lng: number | null; url: string; takenAt: string | null; createdAt: string };
 export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[] };
 export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; distance?: number };
@@ -15,6 +15,7 @@ export async function api<T = any>(url: string, init?: RequestInit): Promise<T> 
   return data as T;
 }
 
+export const patch = <T = any>(url: string, body: unknown) => api<T>(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 export const post = <T = any>(url: string, body?: unknown) => api<T>(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}) });
 
 // Reduz fotos do celular (lado maior 2000px, JPEG 82%) para caber rápido no upload.

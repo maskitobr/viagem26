@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { ExternalLink, MapPin, Star, Trash2 } from "lucide-react";
-import { CHOICE_LABEL, score, type Choice, type Item, type Person, type State } from "../../lib/client";
+import { CHOICE_LABEL, patch, score, type Choice, type Item, type Person, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
 
-export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void }) {
+export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void }) {
   const [open, setOpen] = useState(false), [broken, setBroken] = useState(false);
   const byId = new Map<string, Person>(state.people.map((p) => [p.id, p]));
   const mine = item.votes[state.me.id] as Choice | undefined;
@@ -40,6 +40,9 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete }: { ite
           </div>
         </div>
       )}
+      <label className="dayrow">Dia sugerido
+        <input type="date" min="2026-11-19" value={item.visitDate ?? ""} onChange={(e) => patch(`/api/suggestions/${item.id}`, { visitDate: e.target.value || null }).catch(() => {}).then(onChanged)} />
+      </label>
       <div className="votes" role="group" aria-label="Seu voto">
         {(Object.keys(CHOICE_LABEL) as Choice[]).map((c) => (
           <button key={c} className={`vote v-${c} ${mine === c ? "on" : ""}`} aria-pressed={mine === c} onClick={() => onVote(mine === c ? null : c)}>{CHOICE_LABEL[c]}</button>

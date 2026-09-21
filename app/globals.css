@@ -112,3 +112,22 @@ a { color: var(--blue); }
 .card { position: relative; }
 .card-del { position: absolute; top: 8px; right: 8px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .92); color: #b3261e; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
 .card-main { padding-right: 52px; }
+
+.tabs button { font-size: 14px; padding: 0 6px; }
+.me-btn { background: none; border: 0; padding: 0; border-radius: 50%; }
+.dayrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.dayrow input, .ag-row input { border: 1.5px solid var(--line); border-radius: 10px; padding: 6px 8px; background: #fff; min-height: 38px; color: var(--ink); }
+.dayrow.big { padding: 0 0 10px; font-size: 14px; }
+.crop-empty { display: grid; gap: 12px; justify-items: center; padding: 20px 0; text-align: center; }
+.crop { position: relative; margin: 8px auto; touch-action: none; cursor: grab; border-radius: 12px; overflow: hidden; background: #222; }
+.crop canvas { display: block; }
+.crop-mask { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at center, transparent 0, transparent 49%, rgba(0, 0, 0, .6) 50%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); }
+.zoom { display: flex; gap: 12px; align-items: center; justify-content: center; margin: 12px 0; font-weight: 600; font-size: 14px; } .zoom input { flex: 1; max-width: 220px; }
+.crop-actions { display: flex; justify-content: space-between; align-items: center; }
+.ag-day { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 12px 14px; margin: 12px 0; }
+.ag-day h3 { font-size: 18px; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; } .ag-day h3 small { font-family: system-ui, sans-serif; color: var(--muted); font-size: 13px; }
+.ag-day ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ag-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); } .ag-row:first-child { border-top: 0; }
+.ag-row input { max-width: 150px; }
+.badge.city-Chicago { background: #dbe8f5; color: #14406b; } .badge.city-Dallas { background: #fbe3d6; color: #7a3410; } .badge.city-Orlando { background: #dff3e6; color: #1d5a35; }
+.ag-undated { background: #fffdf7; border: 1.5px dashed var(--line); box-shadow: none; }

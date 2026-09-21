@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const [{ n }] = await db.select({ n: count() }).from(people);
     if (Number(n) === 0) return json({ bootstrap: true, people: [] });
     if (!me?.isAdmin) return json({ error: "Somente o organizador acessa esta página." }, 403);
-    return json({ people: (await db.select().from(people)).map((p) => ({ id: p.id, name: p.name, token: p.token, isAdmin: p.isAdmin })) });
+    return json({ people: (await db.select().from(people)).map((p) => ({ id: p.id, name: p.name, token: p.token, isAdmin: p.isAdmin, photo: p.photoKey ? `/api/file/${p.photoKey}` : null })) });
   } catch (e) { return fail(e); }
 }
 

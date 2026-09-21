@@ -6,4 +6,4 @@ export function validateImage(file: { type: string; size: number }) {
   if (!extension || file.size > MAX_BYTES || file.size === 0) throw new Error("Envie uma imagem JPG, PNG ou WebP de até 8 MB.");
   return { extension };
 }
-export function objectKey(kind: "photos" | "items", extension: string) { return `${kind}/${crypto.randomUUID()}.${extension}`; }
+export function objectKey(kind: "photos" | "items" | "profiles", extension: string) { return `${kind}/${crypto.randomUUID()}.${extension}`; }

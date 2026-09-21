@@ -6,7 +6,7 @@ import { ApiError, CATEGORIES, api, compress, type PlaceResult } from "../../lib
 export function AddPlace({ city, onClose, onAdded }: { city: string; onClose: () => void; onAdded: () => void }) {
   const [mode, setMode] = useState<"search" | "manual">("search");
   const [q, setQ] = useState(""), [results, setResults] = useState<PlaceResult[] | null>(null);
-  const [busy, setBusy] = useState(false), [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [day, setDay] = useState("");
   const [m, setM] = useState({ title: "", category: "Passeio", address: "", note: "" }), [file, setFile] = useState<File | null>(null);
 
   async function search(e?: React.FormEvent) {
@@ -25,7 +25,7 @@ export function AddPlace({ city, onClose, onAdded }: { city: string; onClose: ()
     setBusy(true); setMsg("");
     try {
       const f = new FormData();
-      f.set("city", city);
+      f.set("city", city); if (day) f.set("visitDate", day);
       for (const [k, v] of Object.entries(fields)) if (v != null && v !== "") f.set(k, String(v));
       if (image) f.set("image", await compress(image));
       await api("/api/suggestions", { method: "POST", body: f });
@@ -43,6 +43,7 @@ export function AddPlace({ city, onClose, onAdded }: { city: string; onClose: ()
           <button className={mode === "search" ? "on" : ""} onClick={() => setMode("search")}>Buscar no Google</button>
           <button className={mode === "manual" ? "on" : ""} onClick={() => setMode("manual")}>Adicionar à mão</button>
         </div>
+        <label className="dayrow big">Dia sugerido (opcional)<input type="date" min="2026-11-19" value={day} onChange={(e) => setDay(e.target.value)} /></label>
         {msg && <p className="notice" role="alert">{msg}</p>}
         {mode === "search" ? (
           <>

@@ -7,6 +7,7 @@ export const people = pgTable("people", {
   color: text("color").notNull(),
   token: text("token").notNull().unique(),
   isAdmin: boolean("is_admin").notNull().default(false),
+  photoKey: text("photo_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -23,6 +24,7 @@ export const items = pgTable("items", {
   priceLevel: text("price_level"),
   photoName: text("photo_name"),
   imageKey: text("image_key"),
+  visitDate: text("visit_date"),
   createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
