@@ -108,3 +108,7 @@ a { color: var(--blue); }
 .cand.on { border-color: var(--green); background: #eaf7ef; }
 .wall-title { font-size: 18px; margin: 18px 0 8px; } .wall-title small { color: var(--muted); font-family: system-ui, sans-serif; font-size: 13px; }
 .banner .link { margin-left: auto; color: var(--blue); font-weight: 700; }
+
+.card { position: relative; }
+.card-del { position: absolute; top: 8px; right: 8px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .92); color: #b3261e; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+.card-main { padding-right: 52px; }

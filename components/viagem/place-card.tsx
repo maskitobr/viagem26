@@ -14,6 +14,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete }: { ite
   const total = score(item.votes);
   return (
     <article className={`card ${item.isNew ? "is-new" : ""}`}>
+      {canDelete && <button className="card-del" aria-label={`Remover ${item.title}`} title="Remover" onClick={() => confirm(`Remover "${item.title}" da lista?`) && onDelete()}><Trash2 size={16} /></button>}
       <button className="card-main" onClick={() => { setOpen(!open); if (item.isNew) onOpen(); }} aria-expanded={open}>
         {item.image && !broken ? <img src={item.image} alt="" loading="lazy" onError={() => setBroken(true)} /> : <div className="ph"><MapPin size={26} /></div>}
         <div className="grow">
@@ -36,7 +37,6 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete }: { ite
           {item.address && <p className="addr">{item.address}</p>}
           <div className="row">
             {item.mapUrl && <a href={item.mapUrl} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Abrir no Google Maps</a>}
-            {canDelete && <button className="link danger" onClick={() => confirm(`Remover "${item.title}"?`) && onDelete()}><Trash2 size={14} /> Remover</button>}
           </div>
         </div>
       )}
