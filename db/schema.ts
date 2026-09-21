@@ -1,4 +1,5 @@
-import {sql}from"drizzle-orm";import{integer,sqliteTable,text,uniqueIndex}from"drizzle-orm/sqlite-core";
-export const participants=sqliteTable("participants",{id:text("id").primaryKey(),name:text("name").notNull(),photo:text("photo"),createdAt:text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)});
-export const votes=sqliteTable("votes",{id:integer("id").primaryKey({autoIncrement:true}),participantId:text("participant_id").notNull(),itineraryId:text("itinerary_id").notNull(),choice:text("choice",{enum:["quero","talvez","depois"]}).notNull()},t=>[uniqueIndex("vote_once").on(t.participantId,t.itineraryId)]);
-export const comments=sqliteTable("comments",{id:integer("id").primaryKey({autoIncrement:true}),participantId:text("participant_id").notNull(),itineraryId:text("itinerary_id").notNull(),body:text("body").notNull(),createdAt:text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`)});
+import { integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+
+export const participants = pgTable("participants", { id: text("id").primaryKey(), name: text("name").notNull(), photo: text("photo"), createdAt: timestamp("created_at").defaultNow().notNull() });
+export const votes = pgTable("votes", { id: integer("id").primaryKey().generatedAlwaysAsIdentity(), participantId: text("participant_id").notNull(), itineraryId: text("itinerary_id").notNull(), choice: text("choice").notNull() }, (table) => [uniqueIndex("vote_once").on(table.participantId, table.itineraryId)]);
+export const comments = pgTable("comments", { id: integer("id").primaryKey().generatedAlwaysAsIdentity(), participantId: text("participant_id").notNull(), itineraryId: text("itinerary_id").notNull(), body: text("body").notNull(), createdAt: timestamp("created_at").defaultNow().notNull() });
