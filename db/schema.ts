@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, primaryKey, real, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, integer, pgTable, primaryKey, real, text, timestamp } from "drizzle-orm/pg-core";
 
 // Tabelas legadas (participants/votes/comments) permanecem no banco; o app novo usa as abaixo.
 export const people = pgTable("people", {
@@ -47,5 +47,7 @@ export const photos = pgTable("photos", {
   key: text("key").notNull(),
   takenAt: timestamp("taken_at", { withTimezone: true }),
   size: integer("size"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

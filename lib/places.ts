@@ -1,6 +1,7 @@
 import { isCity, type City } from "./scoring";
+import { distanceMeters, validCoords } from "./geo";
 
-export type Place = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null };
+export type Place = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; distance?: number };
 
 const centers: Record<City, { latitude: number; longitude: number }> = {
   Chicago: { latitude: 41.8781, longitude: -87.6298 },
@@ -44,11 +45,30 @@ export async function searchPlaces(query: string, city: string): Promise<Place[]
   return (data.places ?? []).map(normalizePlace);
 }
 
-export const validPhotoName = (n: string) => /^places\/[\w-]+\/photos\/[\w-]+$/.test(n);
+export const validPhotoName = (n: string) => n.length <= 1000 && /^places\/[\w-]+\/photos\/[\w-]+$/.test(n);
 
 export async function fetchPlacePhoto(name: string) {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key || !validPhotoName(name)) return null;
   const r = await fetch(`https://places.googleapis.com/v1/${name}/media?maxWidthPx=800&key=${key}`);
   return r.ok ? r : null;
+}
+
+// Lugares próximos a uma coordenada (GPS da foto), do mais perto ao mais longe.
+export async function nearbyPlaces(lat: number, lng: number): Promise<Place[]> {
+  const key = process.env.GOOGLE_PLACES_API_KEY;
+  if (!key) throw new PlacesNotConfigured("A busca do Google ainda não foi configurada.");
+  if (!validCoords(lat, lng)) throw new PlacesError("Localização inválida.");
+  const r = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": key,
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location",
+    },
+    body: JSON.stringify({ maxResultCount: 10, rankPreference: "DISTANCE", languageCode: "pt-BR", locationRestriction: { circle: { center: { latitude: lat, longitude: lng }, radius: 250 } } }),
+  });
+  if (!r.ok) throw new PlacesError("Não foi possível listar os lugares próximos.");
+  const data = (await r.json()) as { places?: any[] };
+  return (data.places ?? []).map((x) => ({ ...normalizePlace(x), distance: x.location ? Math.round(distanceMeters({ lat, lng }, { lat: x.location.latitude, lng: x.location.longitude })) : undefined }));
 }

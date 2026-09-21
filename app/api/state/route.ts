@@ -25,11 +25,11 @@ export async function GET(req: Request) {
       me: { id: me.id, name: me.name, color: me.color, isAdmin: me.isAdmin },
       people: ppl.map((p) => ({ id: p.id, name: p.name, color: p.color })),
       items: its.map((i) => ({
-        id: i.id, city: i.city, title: i.title, category: i.category, address: i.address, mapUrl: i.mapUrl, note: i.note,
+        id: i.id, placeId: i.placeId, city: i.city, title: i.title, category: i.category, address: i.address, mapUrl: i.mapUrl, note: i.note,
         rating: i.rating, priceLevel: i.priceLevel, image: imageOf(i), createdBy: i.createdBy, createdAt: i.createdAt.toISOString(),
         votes: votesBy[i.id] ?? {}, isNew: isNewFor(i, me.id, seen),
       })),
-      photos: phs.map((p) => ({ id: p.id, personId: p.personId, city: p.city, itemId: p.itemId, url: `/api/file/${p.key}`, takenAt: p.takenAt?.toISOString() ?? null, createdAt: p.createdAt.toISOString() })),
+      photos: phs.map((p) => ({ id: p.id, personId: p.personId, city: p.city, itemId: p.itemId, lat: p.lat, lng: p.lng, url: `/api/file/${p.key}`, takenAt: p.takenAt?.toISOString() ?? null, createdAt: p.createdAt.toISOString() })),
     }, 200, { "Cache-Control": "no-store" });
   } catch (e) { return fail(e, "Não foi possível carregar os dados."); }
 }

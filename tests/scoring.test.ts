@@ -25,3 +25,13 @@ describe("places", () => {
     expect(p).toMatchObject({ title: "Lou Malnati's", rating: 4.6, priceLevel: "$$", photoName: "places/abc/photos/xyz" });
   });
 });
+
+import { clusterByDistance, distanceMeters, validCoords } from "../lib/geo";
+describe("geo", () => {
+  it("measures distance", () => expect(Math.round(distanceMeters({ lat: 41.8781, lng: -87.6298 }, { lat: 41.8791, lng: -87.6298 }))).toBeGreaterThan(100));
+  it("clusters nearby photos and separates far ones", () => {
+    const g = clusterByDistance([{ lat: 41.8781, lng: -87.6298 }, { lat: 41.87815, lng: -87.62985 }, { lat: 32.7767, lng: -96.797 }]);
+    expect(g.map((x) => x.members.length)).toEqual([2, 1]);
+  });
+  it("rejects bad coordinates", () => { expect(validCoords(0, 0)).toBe(false); expect(validCoords(91, 0)).toBe(false); expect(validCoords(41.8, -87.6)).toBe(true); });
+});

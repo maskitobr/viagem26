@@ -5,7 +5,7 @@ import { CHOICE_LABEL, score, type Choice, type Item, type Person, type State } 
 import { Avatar } from "./avatar";
 
 export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false), [broken, setBroken] = useState(false);
   const byId = new Map<string, Person>(state.people.map((p) => [p.id, p]));
   const mine = item.votes[state.me.id] as Choice | undefined;
   const missing = state.people.filter((p) => !item.votes[p.id]);
@@ -15,7 +15,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete }: { ite
   return (
     <article className={`card ${item.isNew ? "is-new" : ""}`}>
       <button className="card-main" onClick={() => { setOpen(!open); if (item.isNew) onOpen(); }} aria-expanded={open}>
-        {item.image ? <img src={item.image} alt="" loading="lazy" /> : <div className="ph"><MapPin size={26} /></div>}
+        {item.image && !broken ? <img src={item.image} alt="" loading="lazy" onError={() => setBroken(true)} /> : <div className="ph"><MapPin size={26} /></div>}
         <div className="grow">
           <div className="badges">
             {item.isNew && <span className="badge novo">NOVO!</span>}

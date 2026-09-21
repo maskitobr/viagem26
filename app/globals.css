@@ -100,3 +100,11 @@ a { color: var(--blue); }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--sky); color: #fff; padding: 12px 18px; border-radius: 999px; z-index: 50; box-shadow: var(--shadow); }
 .gate { text-align: center; padding-top: 90px; } .gate h1 { font-size: 40px; margin-bottom: 20px; } .gate em { color: var(--coral); }
 .admin-h { margin: 24px 0 8px; }
+
+.thumbs { display: flex; gap: 6px; align-items: center; margin: 8px 0 12px; overflow-x: auto; }
+.thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; flex: none; }
+.thumbs span { font-weight: 700; color: var(--muted); padding: 0 6px; }
+.cand { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; background: none; border: 2px solid transparent; border-radius: 12px; padding: 6px; min-height: 48px; }
+.cand.on { border-color: var(--green); background: #eaf7ef; }
+.wall-title { font-size: 18px; margin: 18px 0 8px; } .wall-title small { color: var(--muted); font-family: system-ui, sans-serif; font-size: 13px; }
+.banner .link { margin-left: auto; color: var(--blue); font-weight: 700; }

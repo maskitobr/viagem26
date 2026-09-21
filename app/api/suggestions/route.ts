@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       imageKey = objectKey("items", extension);
       await putImage(imageKey, new Uint8Array(await file.arrayBuffer()), file.type);
     }
-    const photoName = str(f.get("photoName"), 300);
+    const photoName = str(f.get("photoName"), 1000);
     const rating = Number(f.get("rating"));
     const id = crypto.randomUUID();
     const db = await getDb();

@@ -5,6 +5,8 @@ export const statements = [
   `CREATE TABLE IF NOT EXISTS item_votes (person_id text NOT NULL, item_id text NOT NULL, choice text NOT NULL, PRIMARY KEY (person_id, item_id))`,
   `CREATE TABLE IF NOT EXISTS item_seen (person_id text NOT NULL, item_id text NOT NULL, seen_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (person_id, item_id))`,
   `CREATE TABLE IF NOT EXISTS photos (id text PRIMARY KEY, person_id text NOT NULL, city text NOT NULL, item_id text, key text NOT NULL, taken_at timestamptz, size integer, created_at timestamptz NOT NULL DEFAULT now())`,
+  `ALTER TABLE photos ADD COLUMN IF NOT EXISTS lat double precision`,
+  `ALTER TABLE photos ADD COLUMN IF NOT EXISTS lng double precision`,
   `CREATE INDEX IF NOT EXISTS items_city_idx ON items (city)`,
   `CREATE INDEX IF NOT EXISTS photos_city_idx ON photos (city)`,
 ];

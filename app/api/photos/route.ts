@@ -5,6 +5,7 @@ import { fail, getPerson, json, unauthorized } from "../../../lib/auth";
 import { objectKey, validateImage } from "../../../lib/media";
 import { putImage } from "../../../lib/r2";
 import { isCity } from "../../../lib/scoring";
+import { validCoords } from "../../../lib/geo";
 
 // Uma foto por requisição (o cliente envia várias em sequência, já comprimidas).
 export async function POST(req: Request) {
@@ -19,9 +20,9 @@ export async function POST(req: Request) {
       const [it] = await db.select({ city: items.city }).from(items).where(eq(items.id, itemId)).limit(1);
       if (!it || it.city !== city) return json({ error: "Esse lugar não pertence a este destino." }, 400);
     }
-    const key = objectKey("photos", extension), id = crypto.randomUUID(), taken = Number(f.get("takenAt"));
+    const key = objectKey("photos", extension), id = crypto.randomUUID(), taken = Number(f.get("takenAt")), lat = Number(f.get("lat")), lng = Number(f.get("lng")), gps = f.get("lat") && validCoords(lat, lng);
     await putImage(key, new Uint8Array(await file.arrayBuffer()), file.type);
-    await db.insert(photos).values({ id, personId: me.id, city, itemId, key, size: file.size, takenAt: taken > 0 ? new Date(taken) : null });
+    await db.insert(photos).values({ id, personId: me.id, city, itemId, key, size: file.size, lat: gps ? lat : null, lng: gps ? lng : null, takenAt: taken > 0 ? new Date(taken) : null });
     return json({ id, url: `/api/file/${key}` }, 201);
   } catch (e) {
     if (e instanceof Error && e.message.startsWith("Envie uma imagem")) return json({ error: e.message }, 400);

@@ -1,9 +1,9 @@
 export type Choice = "quero" | "talvez" | "passo";
 export type Person = { id: string; name: string; color: string };
-export type Item = { id: string; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
-export type Photo = { id: string; personId: string; city: string; itemId: string | null; url: string; takenAt: string | null; createdAt: string };
+export type Item = { id: string; placeId: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
+export type Photo = { id: string; personId: string; city: string; itemId: string | null; lat: number | null; lng: number | null; url: string; takenAt: string | null; createdAt: string };
 export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[] };
-export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null };
+export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; distance?: number };
 
 export class ApiError extends Error { constructor(message: string, public status: number, public code?: string) { super(message); } }
 
@@ -36,3 +36,16 @@ export const CATEGORIES = ["Restaurante", "Passeio", "Parque", "Compras", "Museu
 export const CHOICE_LABEL: Record<Choice, string> = { quero: "Quero muito", talvez: "Talvez", passo: "Passo" };
 export const SCORE: Record<Choice, number> = { quero: 2, talvez: 1, passo: 0 };
 export const score = (v: Record<string, Choice>) => Object.values(v).reduce((s, c) => s + SCORE[c], 0);
+
+// Lê GPS e data original do EXIF. Deve rodar ANTES de comprimir (o canvas descarta o EXIF).
+export async function readExif(file: File): Promise<{ lat: number | null; lng: number | null; takenAt: number }> {
+  let lat: number | null = null, lng: number | null = null, takenAt = file.lastModified;
+  try {
+    const ex = await import("exifr/dist/lite.esm.mjs");
+    const g = await ex.gps(file);
+    if (g && Number.isFinite(g.latitude) && Number.isFinite(g.longitude)) { lat = g.latitude; lng = g.longitude; }
+    const d = (await ex.parse(file, { pick: ["DateTimeOriginal"] }))?.DateTimeOriginal;
+    if (d instanceof Date && !Number.isNaN(d.getTime())) takenAt = d.getTime();
+  } catch { /* sem EXIF: segue sem localização */ }
+  return { lat, lng, takenAt };
+}
