@@ -203,3 +203,38 @@ a { color: var(--blue); }
 .pop-base.done { background: var(--green); }
 .results .dists { gap: 8px; font-size: 11px; margin-top: 2px; }
 .results .dists span { display: inline-flex; gap: 3px; align-items: center; }
+
+.badge.fotos { background: #f3e8f7; color: #6b3b7a; display: inline-flex; align-items: center; gap: 3px; }
+.dir.photos { border-color: #d9c2e4; color: #6b3b7a; }
+.base-img { width: 100%; height: 96px; object-fit: cover; border-radius: 10px; }
+.baseacts { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.baseacts .link { color: #fff; font-size: 13px; opacity: .92; }
+.editphoto { display: flex; gap: 10px; align-items: center; }
+.editphoto img, .editphoto .ph { width: 72px; height: 72px; border-radius: 12px; object-fit: cover; background: #f0e6d2; flex: none; }
+.editphoto .grow { display: grid; gap: 6px; justify-items: start; }
+
+/* Em telas estreitas os ícones das abas com texto saem para tudo caber. */
+@media (max-width: 430px) { .tabs button:not(.tab-map) svg { display: none; } .tabs button { padding: 0 6px; font-size: 12.5px; } .tabs, .cities { gap: 6px; } }
+
+.mem-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.mem-stats div { background: var(--card); border-radius: 14px; padding: 10px 6px; text-align: center; box-shadow: var(--shadow); }
+.mem-stats b { display: block; font-family: Georgia, serif; font-size: 22px; line-height: 1.1; }
+.mem-stats span { color: var(--muted); font-size: 11px; }
+.mem-day { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; margin: 14px 0; }
+.mem-day header h3 { font-size: 20px; }
+.mem-day header p { margin: 2px 0 10px; font-size: 13px; }
+.daymap { height: 210px; border-radius: 14px; overflow: hidden; background: #dfe7ec; z-index: 0; margin-bottom: 12px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.steps li { display: grid; grid-template-columns: auto 1fr; gap: 10px; position: relative; }
+.steps li::before { content: ""; position: absolute; left: 13px; top: 30px; bottom: -14px; width: 2px; background: var(--line); }
+.steps li:last-child::before { display: none; }
+.step-n { width: 28px; height: 28px; border-radius: 50%; background: var(--coral); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; z-index: 1; }
+.steps strong { display: block; font-size: 16px; }
+.steps .leg { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); font-size: 11px; }
+.steps .muted { display: block; font-size: 13px; margin-top: 2px; }
+.strip { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; }
+.strip button { border: 0; padding: 0; background: none; flex: none; }
+.strip img { width: 78px; height: 78px; object-fit: cover; border-radius: 10px; display: block; }
+.loose { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.loose h4 { font-family: system-ui, sans-serif; font-size: 13px; color: var(--muted); display: flex; gap: 5px; align-items: center; }
+.pin-step { background: var(--coral); }

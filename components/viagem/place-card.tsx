@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
-import { Check, ExternalLink, Home, MapPin, Navigation, RotateCcw, Star, Trash2 } from "lucide-react";
+import { Camera, Check, ExternalLink, Home, MapPin, Navigation, Pencil, RotateCcw, Star, Trash2 } from "lucide-react";
 import { formatDistance } from "../../lib/geo";
 import { CHOICE_LABEL, patch, score, type Choice, type Item, type Person, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
 import { Directions } from "./directions";
+import { PhotoButton } from "./photo-button";
 
-export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus, base, spot, onNeedLocation, onCheckIn }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean; base: Item | null; spot: { lat: number; lng: number } | null; onNeedLocation: () => void; onCheckIn: (visited: boolean) => void }) {
+export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus, base, spot, onNeedLocation, onCheckIn, onEdit, onSeePhotos, onPhotosAdded, photoCount = 0 }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean; base: Item | null; spot: { lat: number; lng: number } | null; onNeedLocation: () => void; onCheckIn: (visited: boolean) => void; onEdit: () => void; onSeePhotos: () => void; onPhotosAdded: (sent: number, errors: string[]) => void; photoCount?: number }) {
   const [open, setOpen] = useState(false), [broken, setBroken] = useState(false);
   const byId = new Map<string, Person>(state.people.map((p) => [p.id, p]));
   const mine = item.votes[state.me.id] as Choice | undefined;
@@ -28,6 +29,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
             {fromBase != null && <span className="badge base-dist"><Home size={10} /> {formatDistance(fromBase)} da base</span>}
             {item.isBase && <span className="badge base"><Home size={10} /> Onde ficaremos</span>}
             {item.visitedBy && <span className="badge done"><Check size={10} /> Visitado{visitor ? ` · ${visitor.name}` : ""}</span>}
+            {photoCount > 0 && <span className="badge fotos"><Camera size={10} /> {photoCount} {photoCount === 1 ? "foto" : "fotos"}</span>}
           </div>
           <h3>{item.title}</h3>
           <span className="meta">
@@ -43,6 +45,8 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
           {item.address && <p className="addr">{item.address}</p>}
           <div className="row">
             {item.mapUrl && <a href={item.mapUrl} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Abrir no Google Maps</a>}
+            {canDelete && <button className="link" onClick={onEdit}><Pencil size={14} /> Editar</button>}
+            {photoCount > 0 && <button className="link" onClick={onSeePhotos}><Camera size={14} /> Ver as fotos</button>}
             {state.me.isAdmin && (
               <button className="link" onClick={() => patch(`/api/suggestions/${item.id}`, { isBase: !item.isBase }).catch((e) => alert((e as Error).message)).then(onChanged)}>
                 <Home size={14} /> {item.isBase ? "Não é mais a base" : `Marcar como base em ${item.city}`}
@@ -52,11 +56,17 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
         </div>
       )}
       {item.visitedBy ? (
-        <div className="dirs"><button className="dir undo" onClick={() => onCheckIn(false)}><RotateCcw size={13} /> Ainda não visitamos</button></div>
+        <div className="dirs">
+          <PhotoButton city={item.city} itemId={item.id} label="Enviar fotos daqui" className="dir photos" onDone={onPhotosAdded} />
+          <button className="dir undo" onClick={() => onCheckIn(false)}><RotateCcw size={13} /> Ainda não visitamos</button>
+        </div>
       ) : (
         <>
           <Directions item={item} base={base} spot={spot} onNeedLocation={onNeedLocation} />
-          <div className="dirs"><button className="dir checkin" onClick={() => onCheckIn(true)}><Check size={14} /> Já visitamos este lugar</button></div>
+          <div className="dirs">
+            <button className="dir checkin" onClick={() => onCheckIn(true)}><Check size={14} /> Já visitamos este lugar</button>
+            <PhotoButton city={item.city} itemId={item.id} label="Enviar fotos daqui" className="dir photos" onDone={onPhotosAdded} />
+          </div>
         </>
       )}
       <label className="dayrow">Dia sugerido

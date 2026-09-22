@@ -1,12 +1,13 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
-import { Camera, Download, MapPin, Trash2, X } from "lucide-react";
-import { api, compress, readExif, type Photo, type State } from "../../lib/client";
+import { Camera, MapPin } from "lucide-react";
+import { api, uploadPhotos, type Photo, type State } from "../../lib/client";
 import { PlaceConfirm } from "./place-confirm";
+import { Lightbox } from "./lightbox";
 import { Avatar } from "./avatar";
 
-export function PhotoWall({ state, city, onChanged }: { state: State; city: string; onChanged: () => void | Promise<void> }) {
-  const [by, setBy] = useState(""), [itemId, setItemId] = useState(""), [filterItem, setFilterItem] = useState("");
+export function PhotoWall({ state, city, onChanged, initialItem = "" }: { state: State; city: string; onChanged: () => void | Promise<void>; initialItem?: string }) {
+  const [by, setBy] = useState(""), [itemId, setItemId] = useState(initialItem), [filterItem, setFilterItem] = useState(initialItem);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null), [msg, setMsg] = useState("");
   const [view, setView] = useState<Photo | null>(null), [organizing, setOrganizing] = useState(false), input = useRef<HTMLInputElement>(null);
   const places = state.items.filter((i) => i.city === city);
@@ -23,19 +24,9 @@ export function PhotoWall({ state, city, onChanged }: { state: State; city: stri
 
   async function upload(files: FileList | null) {
     if (!files?.length) return;
-    const list = Array.from(files), errors: string[] = [];
-    let sent = 0;
+    const list = Array.from(files);
     setMsg(""); setProgress({ done: 0, total: list.length });
-    for (let i = 0; i < list.length; i++) {
-      try {
-        const meta = await readExif(list[i]), f = new FormData(), small = await compress(list[i]);
-        f.set("file", small); f.set("city", city); f.set("takenAt", String(meta.takenAt)); if (itemId) f.set("itemId", itemId);
-        if (meta.lat != null && meta.lng != null) { f.set("lat", String(meta.lat)); f.set("lng", String(meta.lng)); }
-        await api("/api/photos", { method: "POST", body: f });
-        sent++;
-      } catch (e) { errors.push(`${list[i].name}: ${(e as Error).message}`); }
-      setProgress({ done: i + 1, total: list.length });
-    }
+    const { sent, errors } = await uploadPhotos(list, { city, itemId }, (done, total) => setProgress({ done, total }));
     setProgress(null); if (input.current) input.current.value = "";
     if (errors.length) setMsg(errors.slice(0, 3).join(" · "));
     await onChanged();
@@ -78,19 +69,7 @@ export function PhotoWall({ state, city, onChanged }: { state: State; city: stri
         ))
       )}
       {organizing && <PlaceConfirm state={state} city={city} onClose={() => setOrganizing(false)} onDone={() => { onChanged(); }} />}
-      {view && (
-        <div className="lightbox" onClick={() => setView(null)}>
-          <div className="lb-top" onClick={(e) => e.stopPropagation()}>
-            <span><Avatar p={byId.get(view.personId)} size={24} /> {byId.get(view.personId)?.name}{view.itemId ? ` · ${state.items.find((i) => i.id === view.itemId)?.title ?? ""}` : ""}</span>
-            <span className="lb-actions">
-              <a href={view.url} download aria-label="Baixar"><Download size={20} /></a>
-              {(view.personId === state.me.id || state.me.isAdmin) && <button onClick={() => remove(view)} aria-label="Remover"><Trash2 size={20} /></button>}
-              <button onClick={() => setView(null)} aria-label="Fechar"><X size={22} /></button>
-            </span>
-          </div>
-          <img src={view.url} alt="" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
+      {view && <Lightbox photo={view} state={state} onClose={() => setView(null)} onRemove={remove} />}
     </section>
   );
 }

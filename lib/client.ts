@@ -1,6 +1,6 @@
 export type Choice = "quero" | "talvez" | "passo";
 export type Person = { id: string; name: string; color: string; photo?: string | null };
-export type Item = { id: string; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; visitedBy: string | null; visitedAt: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
+export type Item = { id: string; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; visitedBy: string | null; visitedAt: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; hasOwnImage: boolean; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
 export type Photo = { id: string; personId: string; city: string; itemId: string | null; lat: number | null; lng: number | null; url: string; takenAt: string | null; createdAt: string };
 export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[] };
 export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; lat: number | null; lng: number | null; distance?: number };
@@ -18,9 +18,13 @@ export async function api<T = any>(url: string, init?: RequestInit): Promise<T> 
 export const patch = <T = any>(url: string, body: unknown) => api<T>(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 export const post = <T = any>(url: string, body?: unknown) => api<T>(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}) });
 
-// Reduz fotos do celular (lado maior 2000px, JPEG 82%) para caber rápido no upload.
+const SERVER_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Reduz fotos do celular (lado maior 2000px, JPEG 82%) e converte formatos que o servidor não aceita,
+// como o HEIC do iPhone. Só desiste quando o navegador não consegue abrir a imagem.
 export async function compress(file: File): Promise<File> {
-  if (!file.type.startsWith("image/") || file.size < 600_000) return file;
+  const supported = SERVER_TYPES.includes(file.type);
+  if (supported && file.size < 600_000) return file;
   try {
     const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
     const scale = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
@@ -28,8 +32,32 @@ export async function compress(file: File): Promise<File> {
     c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
     c.getContext("2d")!.drawImage(bmp, 0, 0, c.width, c.height);
     const blob = await new Promise<Blob | null>((res) => c.toBlob(res, "image/jpeg", 0.82));
-    return blob && blob.size < file.size ? new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg", lastModified: file.lastModified }) : file;
-  } catch { return file; }
+    if (!blob) throw new Error("conversão falhou");
+    const out = new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg", lastModified: file.lastModified });
+    return supported && out.size >= file.size ? file : out;
+  } catch {
+    if (supported) return file;
+    throw new Error("Não consegui ler essa imagem. Tente enviar como JPG ou PNG.");
+  }
+}
+
+// Envia várias fotos em sequência; devolve quantas foram e os erros de cada arquivo.
+export async function uploadPhotos(files: File[], to: { city: string; itemId?: string | null }, onStep?: (done: number, total: number) => void) {
+  const errors: string[] = [];
+  let sent = 0;
+  for (let i = 0; i < files.length; i++) {
+    try {
+      const f = new FormData(), small = await compress(files[i]);
+      const meta = await readExif(files[i]);
+      f.set("file", small); f.set("city", to.city); f.set("takenAt", String(meta.takenAt));
+      if (to.itemId) f.set("itemId", to.itemId);
+      if (meta.lat != null && meta.lng != null) { f.set("lat", String(meta.lat)); f.set("lng", String(meta.lng)); }
+      await api("/api/photos", { method: "POST", body: f });
+      sent++;
+    } catch (e) { errors.push(`${files[i].name}: ${(e as Error).message}`); }
+    onStep?.(i + 1, files.length);
+  }
+  return { sent, errors };
 }
 
 export const CITIES = ["Chicago", "Dallas", "Orlando"] as const;
