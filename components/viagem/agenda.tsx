@@ -1,5 +1,5 @@
 "use client";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, Check, MapPin } from "lucide-react";
 import { formatDay } from "../../lib/dates";
 import { CHOICE_LABEL, patch, score, type Choice, type Item, type State } from "../../lib/client";
 
@@ -18,9 +18,9 @@ export function Agenda({ state, onChanged }: { state: State; onChanged: () => vo
   const Row = ({ i }: { i: Item }) => {
     const mine = i.votes[state.me.id] as Choice | undefined;
     return (
-      <li className="ag-row">
+      <li className={`ag-row ${i.visitedBy ? "done" : ""}`}>
         <div className="grow">
-          <strong>{i.title}</strong>
+          <strong>{i.visitedBy && <Check size={14} />} {i.title}</strong>
           <span className="meta"><span className={`badge city-${i.city}`}>{i.city}</span> {i.category} · {score(i.votes)} pts{mine ? ` · você: ${CHOICE_LABEL[mine]}` : ""}</span>
         </div>
         <input type="date" min={TRIP_START} value={i.visitDate ?? ""} aria-label={`Dia de ${i.title}`} onChange={(e) => setDay(i.id, e.target.value || null)} />

@@ -28,6 +28,8 @@ export const items = pgTable("items", {
   lat: doublePrecision("lat"),
   lng: doublePrecision("lng"),
   isBase: boolean("is_base").notNull().default(false),
+  visitedBy: text("visited_by"),
+  visitedAt: timestamp("visited_at", { withTimezone: true }),
   createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -21,8 +21,9 @@ describe("scoring", () => {
 });
 describe("places", () => {
   it("normalizes a Google place", () => {
-    const p = normalizePlace({ id: "abc", displayName: { text: "Lou Malnati's" }, formattedAddress: "1 Main St", rating: 4.6, priceLevel: "PRICE_LEVEL_MODERATE", photos: [{ name: "places/abc/photos/xyz" }] });
-    expect(p).toMatchObject({ title: "Lou Malnati's", rating: 4.6, priceLevel: "$$", photoName: "places/abc/photos/xyz" });
+    const p = normalizePlace({ id: "abc", displayName: { text: "Lou Malnati's" }, formattedAddress: "1 Main St", rating: 4.6, priceLevel: "PRICE_LEVEL_MODERATE", photos: [{ name: "places/abc/photos/xyz" }], location: { latitude: 41.89, longitude: -87.63 } });
+    expect(p).toMatchObject({ title: "Lou Malnati's", rating: 4.6, priceLevel: "$$", photoName: "places/abc/photos/xyz", lat: 41.89, lng: -87.63 });
+    expect(normalizePlace({ id: "b" }).lat).toBeNull();
   });
 });
 

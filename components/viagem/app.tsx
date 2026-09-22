@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, Camera, Map, MapPin, Plus, Sparkles } from "lucide-react";
-import { ApiError, CITIES, api, post, score, type Choice, type State } from "../../lib/client";
+import { CalendarDays, Camera, Check, Map, MapPin, Plus, Sparkles } from "lucide-react";
+import { ApiError, CITIES, api, patch, post, score, type Choice, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
 import { AddPlace } from "./add-place";
 import { PhotoWall } from "./photos";
@@ -9,6 +9,7 @@ import { PlaceCard } from "./place-card";
 import { Agenda } from "./agenda";
 import { ProfilePhotoEditor } from "./profile-photo";
 import { BaseCard } from "./base-card";
+import { Priorities } from "./priorities";
 import { TripMap } from "./map";
 import { useMyLocation } from "./use-location";
 import { distanceMeters } from "../../lib/geo";
@@ -17,7 +18,7 @@ const TRIP = new Date("2026-11-19T00:00:00-03:00");
 
 export function App() {
   const [state, setState] = useState<State | null>(null), [error, setError] = useState<string | null>(null), [denied, setDenied] = useState(false);
-  const [city, setCity] = useState<string>(CITIES[0]), [tab, setTab] = useState<"mapa" | "lugares" | "fotos" | "agenda">("lugares"), [sort, setSort] = useState<"votos" | "perto" | "base">("votos"), [focus, setFocus] = useState(""), [adding, setAdding] = useState(false), [editingPhoto, setEditingPhoto] = useState(false), [toast, setToast] = useState("");
+  const [city, setCity] = useState<string>(CITIES[0]), [tab, setTab] = useState<"mapa" | "lugares" | "fotos" | "agenda">("lugares"), [sort, setSort] = useState<"votos" | "perto" | "base">("votos"), [focus, setFocus] = useState(""), [showDone, setShowDone] = useState(false), [adding, setAdding] = useState(false), [editingPhoto, setEditingPhoto] = useState(false), [toast, setToast] = useState("");
 
   const load = useCallback(async () => {
     try { setState(await api<State>("/api/state")); setError(null); setDenied(false); }
@@ -79,6 +80,20 @@ export function App() {
     setState((s) => s && { ...s, items: s.items.map((i) => (i.id === id ? { ...i, isNew: false } : i)) });
     post(`/api/suggestions/${id}/seen`).catch(() => {});
   }
+  // Check-in vale para a família toda: o lugar sai da lista e vai para "Já visitamos".
+  async function checkIn(item: { id: string; title: string }, visited: boolean) {
+    setState((s) => s && { ...s, items: s.items.map((i) => (i.id === item.id ? { ...i, visitedBy: visited ? s.me.id : null, visitedAt: visited ? new Date().toISOString() : null } : i)) });
+    try { await patch(`/api/suggestions/${item.id}`, { visited }); flash(visited ? `${item.title}: visitado!` : `${item.title} voltou para a lista.`); }
+    catch (e) { flash((e as Error).message); }
+    load();
+  }
+
+  function focusItem(id: string) {
+    setFocus(id);
+    setTimeout(() => document.getElementById(`item-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+    setTimeout(() => setFocus(""), 2600);
+  }
+
   async function remove(id: string) {
     try { await api(`/api/suggestions/${id}`, { method: "DELETE" }); flash("Item removido."); } catch (e) { flash((e as Error).message); }
     load();
@@ -89,7 +104,8 @@ export function App() {
 
   const myNew = newBy(city), allNew = state.items.filter((i) => i.isNew);
   const newAuthors = [...new Set(myNew.map((i) => state.people.find((p) => p.id === i.createdBy)?.name).filter(Boolean))];
-  const top = items.filter((i) => score(i.votes) > 0).slice(0, 3);
+  const pending = items.filter((i) => !i.visitedBy), done = items.filter((i) => i.visitedBy);
+  const top = pending.filter((i) => score(i.votes) > 0).slice(0, 10);
 
   return (
     <main className="wrap">
@@ -124,10 +140,8 @@ export function App() {
           {myNew.length > 0 && <div className="banner"><Sparkles size={18} /> <span><b>{myNew.length} {myNew.length === 1 ? "item novo" : "itens novos"}</b> em {city} para você avaliar{newAuthors.length ? ` (de ${newAuthors.join(", ")})` : ""}.</span></div>}
           {(top.length > 0 || base) && (
             <div className={`topgrid ${top.length > 0 && base ? "two" : ""}`}>
-              {top.length > 0 && (
-                <div className="top"><h2>Prioridades em {city}</h2><ol>{top.map((i) => <li key={i.id}><b>{i.title}</b> <span>{score(i.votes)} pts</span></li>)}</ol></div>
-              )}
               {base && <BaseCard item={base} distance={distanceOf(base)} spot={spot} onNeedLocation={geo.start} />}
+              {top.length > 0 && <Priorities city={city} items={top} distanceOf={distanceOf} fromBase={fromBase} onCheckIn={(i) => checkIn(i, true)} onOpen={focusItem} />}
             </div>
           )}
           {items.length > 1 && (
@@ -139,8 +153,16 @@ export function App() {
           )}
           {sort === "perto" && !spot && <p className="muted">{geo.message || "Procurando sua localização…"}</p>}
           <button className="primary wide" onClick={() => setAdding(true)}><Plus size={18} /> Adicionar lugar em {city}</button>
-          {items.length === 0 ? <p className="empty">Nenhum lugar em {city} ainda. Busque um restaurante ou passeio e adicione!</p> : (
-            <div className="list">{items.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} />)}</div>
+          {pending.length === 0 ? <p className="empty">{done.length > 0 ? `Tudo visitado em ${city}! 🎉` : `Nenhum lugar em ${city} ainda. Busque um restaurante ou passeio e adicione!`}</p> : (
+            <div className="list">{pending.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} />)}</div>
+          )}
+          {done.length > 0 && (
+            <div className="donebox">
+              <button className="done-head" onClick={() => setShowDone(!showDone)} aria-expanded={showDone}>
+                <Check size={16} /> Já visitamos em {city} <i className="dot done-n">{done.length}</i> <span className="muted">{showDone ? "esconder" : "ver"}</span>
+              </button>
+              {showDone && <div className="list">{done.map((i) => <PlaceCard key={i.id} item={i} state={state} rank={0} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} />)}</div>}
+            </div>
           )}
         </section>
       ) : tab === "mapa" ? (
@@ -154,7 +176,7 @@ export function App() {
       ) : tab === "fotos" ? <PhotoWall state={state} city={city} onChanged={load} /> : <Agenda state={state} onChanged={load} />}
       {editingPhoto && <ProfilePhotoEditor name={state.me.name} hasPhoto={!!state.me.photo} onClose={() => setEditingPhoto(false)} onSaved={load} />}
 
-      {adding && <AddPlace city={city} onClose={() => setAdding(false)} onAdded={() => { flash("Lugar adicionado!"); load(); }} />}
+      {adding && <AddPlace city={city} base={base} spot={spot} onClose={() => setAdding(false)} onAdded={() => { flash("Lugar adicionado!"); load(); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </main>
   );

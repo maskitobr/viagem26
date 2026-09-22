@@ -20,13 +20,20 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   } catch (e) { return fail(e); }
 }
 
-// Dia de ir: qualquer pessoa. Ponto fixo (hotel/casa) do destino: só o organizador.
+// Dia de ir e check-in: qualquer pessoa. Ponto fixo (hotel/casa) do destino: só o organizador.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const me = await getPerson(req);
     if (!me) return unauthorized();
-    const body = (await req.json()) as { visitDate?: string | null; isBase?: boolean };
+    const body = (await req.json()) as { visitDate?: string | null; isBase?: boolean; visited?: boolean };
     const { id } = await params, db = await getDb();
+
+    // Check-in: vale para a família toda, e qualquer um pode desfazer.
+    if (typeof body.visited === "boolean") {
+      const set = body.visited ? { visitedBy: me.id, visitedAt: new Date() } : { visitedBy: null, visitedAt: null };
+      const r = await db.update(items).set(set).where(eq(items.id, id)).returning({ id: items.id });
+      return r.length ? json({ ok: true }) : json({ error: "Item não encontrado." }, 404);
+    }
 
     if (typeof body.isBase === "boolean") {
       if (!me.isAdmin) return json({ error: "Só o organizador define onde ficaremos hospedados." }, 403);

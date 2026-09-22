@@ -1,6 +1,6 @@
 export type Choice = "quero" | "talvez" | "passo";
 export type Person = { id: string; name: string; color: string; photo?: string | null };
-export type Item = { id: string; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
+export type Item = { id: string; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; visitedBy: string | null; visitedAt: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; image: string | null; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
 export type Photo = { id: string; personId: string; city: string; itemId: string | null; lat: number | null; lng: number | null; url: string; takenAt: string | null; createdAt: string };
 export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[] };
 export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; lat: number | null; lng: number | null; distance?: number };
@@ -69,3 +69,9 @@ export function directionsUrl(from: { lat: number; lng: number } | null, to: Ite
   u.searchParams.set("travelmode", mode);
   return u.toString();
 }
+
+export const CITY_CENTER: Record<string, { lat: number; lng: number }> = {
+  Chicago: { lat: 41.8781, lng: -87.6298 },
+  Dallas: { lat: 32.7767, lng: -96.797 },
+  Orlando: { lat: 28.5383, lng: -81.3792 },
+};

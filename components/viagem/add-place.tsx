@@ -1,9 +1,14 @@
 "use client";
 import { useState } from "react";
-import { Plus, Search, Star, X } from "lucide-react";
-import { ApiError, CATEGORIES, api, compress, type PlaceResult } from "../../lib/client";
+import { Home, Navigation, Plus, Search, Star, X } from "lucide-react";
+import { ApiError, CATEGORIES, CITY_CENTER, api, compress, type Item, type PlaceResult } from "../../lib/client";
+import { distanceMeters, formatDistance } from "../../lib/geo";
 
-export function AddPlace({ city, onClose, onAdded }: { city: string; onClose: () => void; onAdded: () => void }) {
+export function AddPlace({ city, onClose, onAdded, base, spot }: { city: string; onClose: () => void; onAdded: () => void; base: Item | null; spot: { lat: number; lng: number } | null }) {
+  // Só usa a sua posição como referência se você já estiver na cidade; senão, a base.
+  const here = spot && distanceMeters(spot, CITY_CENTER[city] ?? CITY_CENTER.Chicago) < 60000 ? spot : null;
+  const baseAt = base && base.lat != null && base.lng != null ? { lat: base.lat, lng: base.lng } : null;
+  const near = here ?? baseAt;
   const [mode, setMode] = useState<"search" | "manual">("search");
   const [q, setQ] = useState(""), [results, setResults] = useState<PlaceResult[] | null>(null);
   const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [day, setDay] = useState("");
@@ -13,7 +18,7 @@ export function AddPlace({ city, onClose, onAdded }: { city: string; onClose: ()
     e?.preventDefault();
     if (!q.trim()) return;
     setBusy(true); setMsg("");
-    try { setResults(await api<PlaceResult[]>(`/api/places/search?city=${city}&q=${encodeURIComponent(q)}`)); }
+    try { setResults(await api<PlaceResult[]>(`/api/places/search?city=${city}&q=${encodeURIComponent(q)}${near ? `&lat=${near.lat}&lng=${near.lng}` : ""}`)); }
     catch (err) {
       if (err instanceof ApiError && err.code === "not_configured") { setMode("manual"); }
       setMsg((err as Error).message);
@@ -60,6 +65,12 @@ export function AddPlace({ city, onClose, onAdded }: { city: string; onClose: ()
                     <strong>{p.title}</strong>
                     <span className="meta">{p.category}{p.rating ? <> · <Star size={12} fill="currentColor" /> {p.rating.toFixed(1)}</> : null}{p.priceLevel ? ` · ${p.priceLevel}` : ""}</span>
                     <span className="addr">{p.address}</span>
+                    {p.lat != null && p.lng != null && (here || baseAt) && (
+                      <span className="meta dists">
+                        {here && <span><Navigation size={10} /> {formatDistance(distanceMeters(here, { lat: p.lat, lng: p.lng }))} de você</span>}
+                        {baseAt && <span><Home size={10} /> {formatDistance(distanceMeters(baseAt, { lat: p.lat, lng: p.lng }))} da base</span>}
+                      </span>
+                    )}
                   </div>
                   <button className="add" disabled={busy} onClick={() => addResult(p)} aria-label={`Adicionar ${p.title}`}><Plus size={18} /></button>
                 </li>

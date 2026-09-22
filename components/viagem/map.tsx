@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as LMap, LayerGroup } from "leaflet";
 import { Crosshair, LocateFixed, MapPin } from "lucide-react";
 import "leaflet/dist/leaflet.css";
-import { CITIES, score, type Item, type State } from "../../lib/client";
+import { CITIES, CITY_CENTER, score, type Item, type State } from "../../lib/client";
 import { distanceMeters, formatDistance } from "../../lib/geo";
 import type { LocationState } from "./use-location";
 
-const CENTERS: Record<string, [number, number]> = { Chicago: [41.8781, -87.6298], Dallas: [32.7767, -96.797], Orlando: [28.5383, -81.3792] };
+const CENTERS: Record<string, [number, number]> = Object.fromEntries(Object.entries(CITY_CENTER).map(([c, p]) => [c, [p.lat, p.lng] as [number, number]]));
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 const pinColor = (n: number) => (n >= 4 ? "#2f9e63" : n >= 2 ? "#ffc94d" : n > 0 ? "#ec5f43" : "#8a97a3");
 
@@ -50,9 +50,9 @@ export function TripMap({ state, city, setCity, location, onOpenItem }: { state:
         const toBase = b && b.id !== i.id ? distanceMeters({ lat: b.lat!, lng: b.lng! }, { lat: i.lat!, lng: i.lng! }) : null;
         const icon = i.isBase
           ? L.divIcon({ className: "pin-wrap", html: '<span class="pin pin-base"><b>\u2302</b></span>', iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -32] })
-          : L.divIcon({ className: "pin-wrap", html: `<span class="pin" style="background:${pinColor(pts)}"><b>${pts || ""}</b></span>`, iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28] });
+          : L.divIcon({ className: "pin-wrap", html: `<span class="pin${i.visitedBy ? " pin-done" : ""}" style="background:${i.visitedBy ? "#2f9e63" : pinColor(pts)}"><b>${i.visitedBy ? "\u2713" : pts || ""}</b></span>`, iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28] });
         L.marker([i.lat!, i.lng!], { icon, title: i.title, zIndexOffset: i.isBase ? 500 : 0 })
-          .bindPopup(`<strong>${esc(i.title)}</strong>${i.isBase ? ' <span class="pop-base">onde ficaremos</span>' : ""}<br><span class="pop-meta">${esc(i.city)} · ${esc(i.category)} · ${pts} pts${dist != null ? ` · a ${formatDistance(dist)} de você` : ""}${toBase != null ? ` · a ${formatDistance(toBase)} da base` : ""}</span><br><button class="pop-btn" data-item="${i.id}">Ver na lista</button>${i.mapUrl ? ` <a class="pop-btn alt" href="${esc(i.mapUrl)}" target="_blank" rel="noreferrer">Google Maps</a>` : ""}`)
+          .bindPopup(`<strong>${esc(i.title)}</strong>${i.isBase ? ' <span class="pop-base">onde ficaremos</span>' : ""}${i.visitedBy ? ' <span class="pop-base done">visitado</span>' : ""}<br><span class="pop-meta">${esc(i.city)} · ${esc(i.category)} · ${pts} pts${dist != null ? ` · a ${formatDistance(dist)} de você` : ""}${toBase != null ? ` · a ${formatDistance(toBase)} da base` : ""}</span><br><button class="pop-btn" data-item="${i.id}">Ver na lista</button>${i.mapUrl ? ` <a class="pop-btn alt" href="${esc(i.mapUrl)}" target="_blank" rel="noreferrer">Google Maps</a>` : ""}`)
           .addTo(pins.current);
       }
       const bounds: [number, number][] = shown.map((i) => [i.lat!, i.lng!]);

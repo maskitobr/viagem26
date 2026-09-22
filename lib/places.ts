@@ -29,7 +29,7 @@ export function normalizePlace(x: any): Place {
   };
 }
 
-export async function searchPlaces(query: string, city: string): Promise<Place[]> {
+export async function searchPlaces(query: string, city: string, near?: { lat: number; lng: number }): Promise<Place[]> {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key) throw new PlacesNotConfigured("A busca do Google ainda não foi configurada. Você pode adicionar o lugar manualmente.");
   if (!isCity(city) || !query.trim()) throw new PlacesError("Busca inválida.");
@@ -40,7 +40,7 @@ export async function searchPlaces(query: string, city: string): Promise<Place[]
       "X-Goog-Api-Key": key,
       "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location",
     },
-    body: JSON.stringify({ textQuery: `${query.slice(0, 80)} em ${city}`, languageCode: "pt-BR", pageSize: 10, locationBias: { circle: { center: centers[city], radius: 30000 } } }),
+    body: JSON.stringify({ textQuery: `${query.slice(0, 80)} em ${city}`, languageCode: "pt-BR", pageSize: 10, locationBias: { circle: { center: near && validCoords(near.lat, near.lng) ? { latitude: near.lat, longitude: near.lng } : centers[city], radius: near ? 15000 : 30000 } } }),
   });
   if (!r.ok) throw new PlacesError("A busca do Google falhou. Tente de novo em instantes.");
   const data = (await r.json()) as { places?: unknown[] };
