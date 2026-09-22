@@ -17,6 +17,8 @@ export const statements = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS flight jsonb`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS visited_by text`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS visited_at timestamptz`,
+  `CREATE TABLE IF NOT EXISTS docs (id text PRIMARY KEY, person_id text NOT NULL, item_id text NOT NULL, city text NOT NULL, holder text, kind text NOT NULL DEFAULT 'outro', key text NOT NULL, filename text NOT NULL, content_type text NOT NULL, size integer, created_at timestamptz NOT NULL DEFAULT now())`,
+  `CREATE INDEX IF NOT EXISTS docs_person_idx ON docs (person_id)`,
   `CREATE INDEX IF NOT EXISTS items_city_idx ON items (city)`,
   `CREATE INDEX IF NOT EXISTS photos_city_idx ON photos (city)`,
 ];

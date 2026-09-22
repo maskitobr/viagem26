@@ -4,7 +4,8 @@ export type Choice = "quero" | "talvez" | "passo";
 export type Person = { id: string; name: string; color: string; photo?: string | null };
 export type Item = { id: string; kind: "place" | "flight" | "airport"; flight: FlightInfo | null; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; visitedBy: string | null; visitedAt: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; summary: string | null; image: string | null; hasOwnImage: boolean; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
 export type Photo = { id: string; personId: string; city: string; itemId: string | null; lat: number | null; lng: number | null; url: string; takenAt: string | null; createdAt: string };
-export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[] };
+export type TripDoc = { id: string; itemId: string; city: string; holder: string | null; kind: string; filename: string; contentType: string; size: number | null; url: string; createdAt: string };
+export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[]; docs: TripDoc[] };
 export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; summary: string | null; lat: number | null; lng: number | null; distance?: number };
 
 export class ApiError extends Error { constructor(message: string, public status: number, public code?: string) { super(message); } }

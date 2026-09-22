@@ -49,6 +49,21 @@ export const itemSeen = pgTable("item_seen", {
   seenAt: timestamp("seen_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [primaryKey({ columns: [t.personId, t.itemId] })]);
 
+// Documentos da viagem (passagens, reservas). São privados: cada pessoa vê apenas os seus.
+export const docs = pgTable("docs", {
+  id: text("id").primaryKey(),
+  personId: text("person_id").notNull(),
+  itemId: text("item_id").notNull(),
+  city: text("city").notNull(),
+  holder: text("holder"),
+  kind: text("kind").notNull().default("outro"),
+  key: text("key").notNull(),
+  filename: text("filename").notNull(),
+  contentType: text("content_type").notNull(),
+  size: integer("size"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const photos = pgTable("photos", {
   id: text("id").primaryKey(),
   personId: text("person_id").notNull(),

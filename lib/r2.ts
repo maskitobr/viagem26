@@ -40,3 +40,4 @@ export async function deleteImage(Key: string) {
 }
 
 export function validKey(key: string) { return /^(photos|items|profiles|ideas)\/[0-9a-f-]+\.(jpg|png|webp)$/.test(key); }
+export const putFile = putImage, getFile = getImage, deleteFile = deleteImage;

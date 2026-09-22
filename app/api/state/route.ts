@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "../../../db";
-import { itemSeen, itemVotes, items, people, photos } from "../../../db/schema";
+import { docs, itemSeen, itemVotes, items, people, photos } from "../../../db/schema";
 import { fail, getPerson, json, unauthorized } from "../../../lib/auth";
 import { isNewFor } from "../../../lib/scoring";
 import type { Item } from "../../../lib/client";
@@ -16,9 +16,10 @@ export async function GET(req: Request) {
     const me = await getPerson(req);
     if (!me) return unauthorized();
     const db = await getDb();
-    const [ppl, its, vts, seenRows, phs] = await Promise.all([
+    const [ppl, its, vts, seenRows, phs, myDocs] = await Promise.all([
       db.select().from(people), db.select().from(items), db.select().from(itemVotes),
       db.select().from(itemSeen).where(eq(itemSeen.personId, me.id)), db.select().from(photos),
+      db.select().from(docs).where(eq(docs.personId, me.id)),
     ]);
     const seen = new Set(seenRows.map((s) => s.itemId));
     const votesBy: Record<string, Record<string, string>> = {};
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
         rating: i.rating, priceLevel: i.priceLevel, summary: i.summary, image: imageOf(i), hasOwnImage: !!i.imageKey, createdBy: i.createdBy, createdAt: i.createdAt.toISOString(),
         votes: votesBy[i.id] ?? {}, isNew: isNewFor(i, me.id, seen),
       })),
+      docs: myDocs.map((d) => ({ id: d.id, itemId: d.itemId, city: d.city, holder: d.holder, kind: d.kind, filename: d.filename, contentType: d.contentType, size: d.size, url: `/api/docs/${d.id}`, createdAt: d.createdAt.toISOString() })),
       photos: phs.map((p) => ({ id: p.id, personId: p.personId, city: p.city, itemId: p.itemId, lat: p.lat, lng: p.lng, url: `/api/file/${p.key}`, takenAt: p.takenAt?.toISOString() ?? null, createdAt: p.createdAt.toISOString() })),
     }, 200, { "Cache-Control": "no-store" });
   } catch (e) { return fail(e, "Não foi possível carregar os dados."); }

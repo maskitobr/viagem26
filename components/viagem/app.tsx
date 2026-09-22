@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, Camera, Check, Map, MapPin, Plus, Route, Sparkles } from "lucide-react";
+import { CalendarDays, Camera, Check, Map, MapPin, Paperclip, Plus, Route, Sparkles } from "lucide-react";
 import type { Item } from "../../lib/client";
 import { ApiError, CITIES, api, patch, post, score, type Choice, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
@@ -13,6 +13,11 @@ import { BaseCard } from "./base-card";
 import { Priorities } from "./priorities";
 import { EditPlace } from "./edit-place";
 import { Memory } from "./memory";
+import { ArrivalBox } from "./arrival";
+import { DocsBox } from "./docs-box";
+import { DocsSheet } from "./docs-sheet";
+import { DocViewer } from "./doc-viewer";
+import type { TripDoc } from "../../lib/client";
 import { TripMap } from "./map";
 import { useMyLocation } from "./use-location";
 import { distanceMeters } from "../../lib/geo";
@@ -21,7 +26,7 @@ const TRIP = new Date("2026-11-19T00:00:00-03:00");
 
 export function App() {
   const [state, setState] = useState<State | null>(null), [error, setError] = useState<string | null>(null), [denied, setDenied] = useState(false);
-  const [city, setCity] = useState<string>(CITIES[0]), [tab, setTab] = useState<"mapa" | "lugares" | "fotos" | "agenda" | "memoria">("lugares"), [sort, setSort] = useState<"votos" | "perto" | "base">("votos"), [focus, setFocus] = useState(""), [showDone, setShowDone] = useState(false), [editing, setEditing] = useState<Item | null>(null), [photoItem, setPhotoItem] = useState(""), [adding, setAdding] = useState(false), [editingPhoto, setEditingPhoto] = useState(false), [toast, setToast] = useState("");
+  const [city, setCity] = useState<string>(CITIES[0]), [tab, setTab] = useState<"mapa" | "lugares" | "fotos" | "agenda" | "memoria">("lugares"), [sort, setSort] = useState<"votos" | "perto" | "base">("votos"), [focus, setFocus] = useState(""), [showDone, setShowDone] = useState(false), [editing, setEditing] = useState<Item | null>(null), [doc, setDoc] = useState<TripDoc | null>(null), [docsOpen, setDocsOpen] = useState(false), [photoItem, setPhotoItem] = useState(""), [adding, setAdding] = useState(false), [editingPhoto, setEditingPhoto] = useState(false), [toast, setToast] = useState("");
 
   const load = useCallback(async () => {
     try { setState(await api<State>("/api/state")); setError(null); setDenied(false); }
@@ -122,7 +127,11 @@ export function App() {
           <h1>Nossa Viagem <em>2026</em></h1>
           <p className="count"><b>{days}</b> dias para embarcar</p>
         </div>
-        <div className="me"><button className="me-btn" onClick={() => setEditingPhoto(true)} aria-label="Trocar minha foto de perfil" title="Trocar minha foto"><Avatar p={state.me} size={40} /></button><span>{state.me.name}</span>{state.me.isAdmin && <a href="/admin">Admin</a>}</div>
+        <div className="me">
+          <button className="docs-btn" onClick={() => setDocsOpen(true)} aria-label="Meus documentos" title="Meus documentos">
+            <Paperclip size={16} />{state.docs.length > 0 && <i>{state.docs.length}</i>}
+          </button>
+          <button className="me-btn" onClick={() => setEditingPhoto(true)} aria-label="Trocar minha foto de perfil" title="Trocar minha foto"><Avatar p={state.me} size={40} /></button><span>{state.me.name}</span>{state.me.isAdmin && <a href="/admin">Admin</a>}</div>
       </header>
 
       {error && <p className="notice" role="alert">{error}</p>}
@@ -146,9 +155,10 @@ export function App() {
       {tab === "lugares" ? (
         <section>
           {myNew.length > 0 && <div className="banner"><Sparkles size={18} /> <span><b>{myNew.length} {myNew.length === 1 ? "item novo" : "itens novos"}</b> em {city} para você avaliar{newAuthors.length ? ` (de ${newAuthors.join(", ")})` : ""}.</span></div>}
+          <ArrivalBox state={state} city={city} onChanged={load} onOpenDoc={setDoc} />
           {(top.length > 0 || base) && (
             <div className={`topgrid ${top.length > 0 && base ? "two" : ""}`}>
-              {base && <BaseCard item={base} distance={distanceOf(base)} spot={spot} onNeedLocation={geo.start} canEdit={base.createdBy === state.me.id || state.me.isAdmin} onEdit={() => setEditing(base)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(base.id)} />}
+              {base && <BaseCard item={base} distance={distanceOf(base)} spot={spot} onNeedLocation={geo.start} canEdit={base.createdBy === state.me.id || state.me.isAdmin} onEdit={() => setEditing(base)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(base.id)} state={state} onChanged={load} onOpenDoc={setDoc} />}
               {top.length > 0 && <Priorities city={city} items={top} distanceOf={distanceOf} fromBase={fromBase} onCheckIn={(i) => checkIn(i, true)} onOpen={focusItem} />}
             </div>
           )}
@@ -162,14 +172,14 @@ export function App() {
           {sort === "perto" && !spot && <p className="muted">{geo.message || "Procurando sua localização…"}</p>}
           <button className="primary wide" onClick={() => setAdding(true)}><Plus size={18} /> {city === "Voos" ? "Adicionar voo" : `Adicionar lugar em ${city}`}</button>
           {pending.length === 0 ? <p className="empty">{done.length > 0 ? `Tudo visitado em ${city}! 🎉` : `Nenhum lugar em ${city} ainda. Busque um restaurante ou passeio e adicione!`}</p> : (
-            <div className="list">{pending.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} onEdit={() => setEditing(i)} onSeePhotos={() => seePhotos(i)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(i.id)} />)}</div>
+            <div className="list">{pending.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} onEdit={() => setEditing(i)} onSeePhotos={() => seePhotos(i)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(i.id)} onChanged2={load} onOpenDoc={setDoc} />)}</div>
           )}
           {done.length > 0 && (
             <div className="donebox">
               <button className="done-head" onClick={() => setShowDone(!showDone)} aria-expanded={showDone}>
                 <Check size={16} /> Já visitamos em {city} <i className="dot done-n">{done.length}</i> <span className="muted">{showDone ? "esconder" : "ver"}</span>
               </button>
-              {showDone && <div className="list">{done.map((i) => <PlaceCard key={i.id} item={i} state={state} rank={0} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} onEdit={() => setEditing(i)} onSeePhotos={() => seePhotos(i)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(i.id)} />)}</div>}
+              {showDone && <div className="list">{done.map((i) => <PlaceCard key={i.id} item={i} state={state} rank={0} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} onEdit={() => setEditing(i)} onSeePhotos={() => seePhotos(i)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(i.id)} onChanged2={load} onOpenDoc={setDoc} />)}</div>}
             </div>
           )}
         </section>
@@ -186,6 +196,8 @@ export function App() {
         try { await api(`/api/photos/${p.id}`, { method: "DELETE" }); flash("Foto removida."); } catch (e) { flash((e as Error).message); }
         load();
       }} />}
+      {doc && <DocViewer doc={doc} onClose={() => setDoc(null)} />}
+      {docsOpen && <DocsSheet state={state} onClose={() => setDocsOpen(false)} onOpen={(d) => { setDocsOpen(false); setDoc(d); }} />}
       {editing && <EditPlace item={editing} onClose={() => setEditing(null)} onSaved={() => { flash("Lugar atualizado."); load(); }} />}
       {editingPhoto && <ProfilePhotoEditor name={state.me.name} hasPhoto={!!state.me.photo} onClose={() => setEditingPhoto(false)} onSaved={load} />}
 

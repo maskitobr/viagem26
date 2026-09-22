@@ -7,8 +7,9 @@ import { Avatar } from "./avatar";
 import { Directions } from "./directions";
 import { FlightStrip } from "./flight-strip";
 import { PhotoButton } from "./photo-button";
+import { DocsBox } from "./docs-box";
 
-export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus, base, spot, onNeedLocation, onCheckIn, onEdit, onSeePhotos, onPhotosAdded, photoCount = 0 }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean; base: Item | null; spot: { lat: number; lng: number } | null; onNeedLocation: () => void; onCheckIn: (visited: boolean) => void; onEdit: () => void; onSeePhotos: () => void; onPhotosAdded: (sent: number, errors: string[]) => void; photoCount?: number }) {
+export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus, base, spot, onNeedLocation, onCheckIn, onEdit, onSeePhotos, onPhotosAdded, photoCount = 0, onChanged2, onOpenDoc }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean; base: Item | null; spot: { lat: number; lng: number } | null; onNeedLocation: () => void; onCheckIn: (visited: boolean) => void; onEdit: () => void; onSeePhotos: () => void; onPhotosAdded: (sent: number, errors: string[]) => void; photoCount?: number; onChanged2: () => void | Promise<void>; onOpenDoc: (d: import("../../lib/client").TripDoc) => void }) {
   const [open, setOpen] = useState(false), [broken, setBroken] = useState(false);
   const byId = new Map<string, Person>(state.people.map((p) => [p.id, p]));
   const mine = item.votes[state.me.id] as Choice | undefined;
@@ -68,6 +69,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
               </button>
             )}
           </div>
+          {!logistics && <DocsBox item={item} state={state} onChanged={onChanged2} onOpen={onOpenDoc} defaultKind="documento" compact />}
         </div>
       )}
       {item.visitedBy ? (
@@ -86,6 +88,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
           </div>
         </>
       )}
+      {logistics && <DocsBox item={item} state={state} onChanged={onChanged2} onOpen={onOpenDoc} defaultKind={isFlight ? "passagem" : "documento"} compact />}
       {!logistics && <label className="dayrow">Dia sugerido
         <input type="date" min="2026-11-19" value={item.visitDate ?? ""} onChange={(e) => patch(`/api/suggestions/${item.id}`, { visitDate: e.target.value || null }).catch(() => {}).then(onChanged)} />
       </label>}

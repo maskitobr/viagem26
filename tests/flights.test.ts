@@ -37,3 +37,18 @@ describe("voos", () => {
     expect(airportTitle({ code: "MCO", name: "Orlando Intl", city: "Orlando", lat: null, lng: null, timeZone: null })).toBe("Aeroporto MCO · Orlando");
   });
 });
+
+import { docKey, isDocKind, validateDoc } from "../lib/docs";
+describe("documentos", () => {
+  it("aceita PDF e imagem da reserva, recusa o resto", () => {
+    expect(validateDoc({ type: "application/pdf", size: 900_000 })).toEqual({ extension: "pdf" });
+    expect(validateDoc({ type: "image/jpeg", size: 900_000 })).toEqual({ extension: "jpg" });
+    expect(() => validateDoc({ type: "text/plain", size: 10 })).toThrow("Envie um PDF");
+    expect(() => validateDoc({ type: "application/pdf", size: 20_000_000 })).toThrow("até 12 MB");
+  });
+  it("guarda em uma chave própria e valida o tipo", () => {
+    expect(docKey("pdf")).toMatch(/^docs\/[0-9a-f-]+\.pdf$/);
+    expect(isDocKind("passagem")).toBe(true);
+    expect(isDocKind("qualquer")).toBe(false);
+  });
+});

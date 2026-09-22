@@ -306,3 +306,42 @@ a { color: var(--blue); }
 .seg.three button { font-size: 13px; display: inline-flex; gap: 4px; align-items: center; justify-content: center; }
 .cal-dots i.c-voos { background: var(--sky); }
 .fs-credit { font-size: 10.5px; color: var(--muted); text-decoration: none; }
+
+/* Documentos da viagem */
+.docs { display: grid; gap: 8px; padding: 0 12px 12px; }
+.basebox .docs, .arrivalbox .docs { padding: 0; }
+.docs-head { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+.docs-head b { color: var(--ink); font-size: 13px; }
+.basebox .docs-head b, .arrivalbox .docs-head b { color: #fff; }
+.docs-head .muted { margin-left: auto; font-size: 11px; }
+.doclist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.doclist li { display: flex; gap: 6px; align-items: center; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 10px; }
+.doc-open { display: flex; gap: 8px; align-items: center; flex: 1; min-width: 0; background: none; border: 0; text-align: left; padding: 6px 0; color: var(--sky); }
+.doc-open .grow { display: grid; min-width: 0; }
+.doc-open b { font-size: 14px; }
+.doc-sub { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-del { background: none; border: 0; color: #b3261e; min-width: 38px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; }
+.docs-add { justify-self: start; border-color: var(--line); color: var(--sky); }
+.basebox .docs-add, .arrivalbox .docs-add { border-color: rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .12); color: #fff; }
+.staged { display: grid; gap: 8px; background: #fffdf7; border: 1.5px dashed var(--line); border-radius: 12px; padding: 10px; }
+.staged-row { display: grid; gap: 6px; }
+.staged-row input, .staged-row select { border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; background: #fff; color: var(--ink); }
+.staged-acts { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.staged-acts .primary { min-height: 42px; padding: 0 14px; font-size: 14px; }
+.docs-btn { position: relative; background: rgba(255, 255, 255, .16); border: 0; color: #fff; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.docs-btn i { position: absolute; top: -4px; right: -4px; background: var(--sun); color: #3d2b00; font-style: normal; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+.docgroup { margin-bottom: 14px; } .docgroup h3 { font-size: 16px; margin-bottom: 6px; }
+.arrivalbox { background: linear-gradient(135deg, #1b4a6b, #2b7fb8); color: #fff; border-radius: 16px; padding: 12px 14px; display: grid; gap: 10px; box-shadow: var(--shadow); margin: 10px 0; }
+.arrivalbox h2 { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; font-family: system-ui, sans-serif; color: var(--sun); display: flex; gap: 5px; align-items: center; }
+.arrival-one { display: grid; gap: 8px; }
+.arrivalbox .muted, .arrivalbox .fs-head, .arrivalbox .fs-city, .arrivalbox .fs-term { color: #cfe0ec; }
+.arrivalbox .fs-code { color: #fff; } .arrivalbox .fs-num { background: rgba(255, 255, 255, .18); }
+.arrivalbox .fs-line { color: var(--sun); } .arrivalbox .fs-bar { border-color: rgba(255, 201, 77, .5); } .arrivalbox .fs-dot { border-color: var(--sun); }
+.arrivalbox .doclist li { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .25); }
+.arrivalbox .doc-open, .arrivalbox .doc-open b { color: #fff; } .arrivalbox .doc-sub { color: #cfe0ec; }
+.docview { position: fixed; inset: 0; background: #1a1a1a; z-index: 60; display: flex; flex-direction: column; }
+.dv-top { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px; color: #fff; background: #111; }
+.dv-name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-body { flex: 1; min-height: 0; background: #444; }
+.dv-body iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+.dv-body img { width: 100%; height: 100%; object-fit: contain; }
