@@ -8,6 +8,7 @@ import { PhotoWall } from "./photos";
 import { PlaceCard } from "./place-card";
 import { Agenda } from "./agenda";
 import { ProfilePhotoEditor } from "./profile-photo";
+import { BaseCard } from "./base-card";
 import { TripMap } from "./map";
 import { useMyLocation } from "./use-location";
 import { distanceMeters } from "../../lib/geo";
@@ -62,8 +63,8 @@ export function App() {
   const fromBase = useCallback((i: { id: string; lat: number | null; lng: number | null }) => (base && base.id !== i.id && i.lat != null && i.lng != null ? distanceMeters({ lat: base.lat!, lng: base.lng! }, { lat: i.lat, lng: i.lng }) : null), [base]);
 
   const items = useMemo(() => {
-    const list = (state?.items ?? []).filter((i) => i.city === city);
-    if (sort === "base" && base) return list.sort((a, b) => (a.isBase ? -1 : b.isBase ? 1 : 0) || (fromBase(a) ?? Infinity) - (fromBase(b) ?? Infinity));
+    const list = (state?.items ?? []).filter((i) => i.city === city && !i.isBase);
+    if (sort === "base" && base) return list.sort((a, b) => (fromBase(a) ?? Infinity) - (fromBase(b) ?? Infinity));
     if (sort === "perto" && spot) return list.sort((a, b) => (distanceOf(a) ?? Infinity) - (distanceOf(b) ?? Infinity));
     return list.sort((a, b) => score(b.votes) - score(a.votes) || Object.keys(b.votes).length - Object.keys(a.votes).length || a.createdAt.localeCompare(b.createdAt));
   }, [state, city, sort, spot, base, distanceOf, fromBase]);
@@ -121,8 +122,13 @@ export function App() {
       {tab === "lugares" ? (
         <section>
           {myNew.length > 0 && <div className="banner"><Sparkles size={18} /> <span><b>{myNew.length} {myNew.length === 1 ? "item novo" : "itens novos"}</b> em {city} para você avaliar{newAuthors.length ? ` (de ${newAuthors.join(", ")})` : ""}.</span></div>}
-          {top.length > 0 && (
-            <div className="top"><h2>Prioridades em {city}</h2><ol>{top.map((i) => <li key={i.id}><b>{i.title}</b> <span>{score(i.votes)} pts</span></li>)}</ol></div>
+          {(top.length > 0 || base) && (
+            <div className={`topgrid ${top.length > 0 && base ? "two" : ""}`}>
+              {top.length > 0 && (
+                <div className="top"><h2>Prioridades em {city}</h2><ol>{top.map((i) => <li key={i.id}><b>{i.title}</b> <span>{score(i.votes)} pts</span></li>)}</ol></div>
+              )}
+              {base && <BaseCard item={base} distance={distanceOf(base)} spot={spot} onNeedLocation={geo.start} />}
+            </div>
           )}
           {items.length > 1 && (
             <div className={`seg sortseg ${base ? "three" : ""}`}>
@@ -134,7 +140,7 @@ export function App() {
           {sort === "perto" && !spot && <p className="muted">{geo.message || "Procurando sua localização…"}</p>}
           <button className="primary wide" onClick={() => setAdding(true)}><Plus size={18} /> Adicionar lugar em {city}</button>
           {items.length === 0 ? <p className="empty">Nenhum lugar em {city} ainda. Busque um restaurante ou passeio e adicione!</p> : (
-            <div className="list">{items.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} />)}</div>
+            <div className="list">{items.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} />)}</div>
           )}
         </section>
       ) : tab === "mapa" ? (

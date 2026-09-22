@@ -6,7 +6,7 @@ import { CHOICE_LABEL, patch, score, type Choice, type Item, type State } from "
 const TRIP_START = "2026-11-19";
 
 export function Agenda({ state, onChanged }: { state: State; onChanged: () => void | Promise<void> }) {
-  const dated = state.items.filter((i) => i.visitDate), undated = state.items.filter((i) => !i.visitDate);
+  const dated = state.items.filter((i) => i.visitDate && !i.isBase), undated = state.items.filter((i) => !i.visitDate && !i.isBase);
   const days = [...new Set(dated.map((i) => i.visitDate!))].sort();
   const byScore = (a: Item, b: Item) => score(b.votes) - score(a.votes);
 

@@ -55,3 +55,25 @@ describe("formatDistance", () => {
     expect(formatDistance(7_600_000)).toBe("7.600 km");
   });
 });
+
+import { directionsUrl, travelMode } from "../lib/client";
+describe("directions", () => {
+  it("walks when close, transit in Chicago, car elsewhere", () => {
+    expect(travelMode("Chicago", 800)).toBe("walking");
+    expect(travelMode("Dallas", 900)).toBe("walking");
+    expect(travelMode("Chicago", 9000)).toBe("transit");
+    expect(travelMode("Orlando", 9000)).toBe("driving");
+    expect(travelMode("Dallas", null)).toBe("driving");
+  });
+  it("builds a Google Maps route from origin to the place", () => {
+    const item = { id: "1", placeId: "ChIJabc", title: "Navy Pier", city: "Chicago", lat: 41.89, lng: -87.6 } as never;
+    const u = new URL(directionsUrl({ lat: 41.88, lng: -87.62 }, item, "walking"));
+    expect(u.searchParams.get("origin")).toBe("41.88,-87.62");
+    expect(u.searchParams.get("destination_place_id")).toBe("ChIJabc");
+    expect(u.searchParams.get("travelmode")).toBe("walking");
+  });
+  it("falls back to coordinates when there is no Google place", () => {
+    const item = { id: "2", placeId: null, title: "Casa do primo", city: "Dallas", lat: 32.7, lng: -96.8 } as never;
+    expect(new URL(directionsUrl(null, item, "driving")).searchParams.get("destination")).toBe("32.7,-96.8");
+  });
+});

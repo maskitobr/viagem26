@@ -50,3 +50,22 @@ export async function readExif(file: File): Promise<{ lat: number | null; lng: n
   } catch { /* sem EXIF: segue sem localização */ }
   return { lat, lng, takenAt };
 }
+
+export type TravelMode = "walking" | "transit" | "driving";
+
+// Perto dá para ir a pé. Em Chicago o padrão é metrô/trem; em Dallas e Orlando, carro.
+// O Google Maps abre com esse modo e deixa trocar para a pé, transporte ou carro.
+export function travelMode(city: string, meters: number | null): TravelMode {
+  if (meters != null && meters <= 2500) return "walking";
+  return city === "Chicago" ? "transit" : "driving";
+}
+
+export function directionsUrl(from: { lat: number; lng: number } | null, to: Item, mode: TravelMode): string {
+  const u = new URL("https://www.google.com/maps/dir/");
+  u.searchParams.set("api", "1");
+  if (from) u.searchParams.set("origin", `${from.lat},${from.lng}`);
+  if (to.placeId) { u.searchParams.set("destination", `${to.title}, ${to.city}`); u.searchParams.set("destination_place_id", to.placeId); }
+  else u.searchParams.set("destination", to.lat != null && to.lng != null ? `${to.lat},${to.lng}` : `${to.title}, ${to.city}`);
+  u.searchParams.set("travelmode", mode);
+  return u.toString();
+}

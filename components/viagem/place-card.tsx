@@ -4,8 +4,9 @@ import { ExternalLink, Home, MapPin, Navigation, Star, Trash2 } from "lucide-rea
 import { formatDistance } from "../../lib/geo";
 import { CHOICE_LABEL, patch, score, type Choice, type Item, type Person, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
+import { Directions } from "./directions";
 
-export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean }) {
+export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus, base, spot, onNeedLocation }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean; base: Item | null; spot: { lat: number; lng: number } | null; onNeedLocation: () => void }) {
   const [open, setOpen] = useState(false), [broken, setBroken] = useState(false);
   const byId = new Map<string, Person>(state.people.map((p) => [p.id, p]));
   const mine = item.votes[state.me.id] as Choice | undefined;
@@ -49,6 +50,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
           </div>
         </div>
       )}
+      <Directions item={item} base={base} spot={spot} onNeedLocation={onNeedLocation} />
       <label className="dayrow">Dia sugerido
         <input type="date" min="2026-11-19" value={item.visitDate ?? ""} onChange={(e) => patch(`/api/suggestions/${item.id}`, { visitDate: e.target.value || null }).catch(() => {}).then(onChanged)} />
       </label>
