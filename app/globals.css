@@ -305,3 +305,4 @@ a { color: var(--blue); }
 .seg.three { grid-template-columns: repeat(3, 1fr); }
 .seg.three button { font-size: 13px; display: inline-flex; gap: 4px; align-items: center; justify-content: center; }
 .cal-dots i.c-voos { background: var(--sky); }
+.fs-credit { font-size: 10.5px; color: var(--muted); text-decoration: none; }

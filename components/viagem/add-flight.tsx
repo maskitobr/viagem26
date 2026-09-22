@@ -63,6 +63,7 @@ export function AddFlight({ onSaved, onMessage }: { onSaved: () => void; onMessa
             <label>Data da partida<input required type="date" min={TRIP_START} value={date} onChange={(e) => setDate(e.target.value)} /></label>
             <button className="primary" disabled={busy || !number.trim() || !date}><Search size={16} /> {busy ? "Buscando…" : "Buscar voo"}</button>
           </form>
+          <p className="muted">Busca fornecida por <a href="https://www.aerodatabox.com/" target="_blank" rel="noreferrer">AeroDataBox</a>.</p>
           {found?.map((f, n) => (
             <div className="foundflight" key={n}>
               <FlightStrip f={f} />

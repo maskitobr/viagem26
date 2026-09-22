@@ -3,6 +3,7 @@ import { distanceMeters } from "./geo";
 
 export type Airport = { code: string; name: string; city: string; lat: number | null; lng: number | null; timeZone: string | null };
 export type FlightInfo = {
+  source?: "aerodatabox" | null;
   number: string;
   airline: string | null;
   aircraft: string | null;
@@ -47,6 +48,7 @@ export function normalizeFlight(x: any): FlightInfo | null {
   const from = airportOf(x?.departure), to = airportOf(x?.arrival);
   if (!dep || !arr || !from.code || !to.code) return null;
   return {
+    source: "aerodatabox",
     number: String(x?.number || "").replace(/\s+/g, " ").trim(),
     airline: x?.airline?.name ?? null,
     aircraft: x?.aircraft?.model ?? null,

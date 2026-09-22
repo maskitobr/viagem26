@@ -34,6 +34,9 @@ export function FlightStrip({ f, compact = false }: { f: FlightInfo; compact?: b
           {!compact && f.terminalTo && <span className="fs-term">Terminal {f.terminalTo}</span>}
         </div>
       </div>
+      {!compact && f.source === "aerodatabox" && (
+        <a className="fs-credit" href="https://www.aerodatabox.com/" target="_blank" rel="noreferrer">Dados do voo: AeroDataBox</a>
+      )}
     </div>
   );
 }

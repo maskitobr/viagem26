@@ -45,6 +45,7 @@ export async function POST(req: Request) {
     if (!departTime || !arriveTime) return json({ error: "Informe os horários de partida e chegada (HH:MM)." }, 400);
 
     const flight: FlightInfo = {
+      source: b.source === "aerodatabox" ? "aerodatabox" : null,
       number, airline: text(b.airline, 60), aircraft: text(b.aircraft, 60), from, to,
       departDate: b.departDate!, departTime, departIso: text(b.departIso, 40), terminalFrom: text(b.terminalFrom, 10),
       arriveDate: validDate(b.arriveDate) ? b.arriveDate! : b.departDate!, arriveTime, arriveIso: text(b.arriveIso, 40), terminalTo: text(b.terminalTo, 10),
