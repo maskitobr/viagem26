@@ -9,6 +9,9 @@ export const statements = [
   `ALTER TABLE photos ADD COLUMN IF NOT EXISTS lng double precision`,
   `ALTER TABLE people ADD COLUMN IF NOT EXISTS photo_key text`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS visit_date text`,
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS lat double precision`,
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS lng double precision`,
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS is_base boolean NOT NULL DEFAULT false`,
   `CREATE INDEX IF NOT EXISTS items_city_idx ON items (city)`,
   `CREATE INDEX IF NOT EXISTS photos_city_idx ON photos (city)`,
 ];

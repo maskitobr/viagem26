@@ -20,14 +20,26 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   } catch (e) { return fail(e); }
 }
 
-// Qualquer pessoa da família pode sugerir/alterar/limpar o dia de ir a um lugar.
+// Dia de ir: qualquer pessoa. Ponto fixo (hotel/casa) do destino: só o organizador.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const me = await getPerson(req);
     if (!me) return unauthorized();
-    const { visitDate } = (await req.json()) as { visitDate?: string | null };
-    if (visitDate !== null && !validDate(visitDate)) return json({ error: "Data inválida." }, 400);
+    const body = (await req.json()) as { visitDate?: string | null; isBase?: boolean };
     const { id } = await params, db = await getDb();
+
+    if (typeof body.isBase === "boolean") {
+      if (!me.isAdmin) return json({ error: "Só o organizador define onde ficaremos hospedados." }, 403);
+      const [it] = await db.select().from(items).where(eq(items.id, id)).limit(1);
+      if (!it) return json({ error: "Item não encontrado." }, 404);
+      // Um único ponto fixo por destino.
+      await db.update(items).set({ isBase: false }).where(eq(items.city, it.city));
+      if (body.isBase) await db.update(items).set({ isBase: true }).where(eq(items.id, id));
+      return json({ ok: true });
+    }
+
+    const visitDate = body.visitDate ?? null;
+    if (visitDate !== null && !validDate(visitDate)) return json({ error: "Data inválida." }, 400);
     const r = await db.update(items).set({ visitDate }).where(eq(items.id, id)).returning({ id: items.id });
     return r.length ? json({ ok: true }) : json({ error: "Item não encontrado." }, 404);
   } catch (e) { return fail(e); }

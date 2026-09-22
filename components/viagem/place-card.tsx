@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
-import { ExternalLink, MapPin, Star, Trash2 } from "lucide-react";
+import { ExternalLink, Home, MapPin, Navigation, Star, Trash2 } from "lucide-react";
+import { formatDistance } from "../../lib/geo";
 import { CHOICE_LABEL, patch, score, type Choice, type Item, type Person, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
 
-export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void }) {
+export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean }) {
   const [open, setOpen] = useState(false), [broken, setBroken] = useState(false);
   const byId = new Map<string, Person>(state.people.map((p) => [p.id, p]));
   const mine = item.votes[state.me.id] as Choice | undefined;
@@ -13,7 +14,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
   const canDelete = item.createdBy === state.me.id || state.me.isAdmin;
   const total = score(item.votes);
   return (
-    <article className={`card ${item.isNew ? "is-new" : ""}`}>
+    <article id={`item-${item.id}`} className={`card ${item.isNew ? "is-new" : ""} ${focus ? "is-focus" : ""} ${item.isBase ? "is-base" : ""}`}>
       {canDelete && <button className="card-del" aria-label={`Remover ${item.title}`} title="Remover" onClick={() => confirm(`Remover "${item.title}" da lista?`) && onDelete()}><Trash2 size={16} /></button>}
       <button className="card-main" onClick={() => { setOpen(!open); if (item.isNew) onOpen(); }} aria-expanded={open}>
         {item.image && !broken ? <img src={item.image} alt="" loading="lazy" onError={() => setBroken(true)} /> : <div className="ph"><MapPin size={26} /></div>}
@@ -22,6 +23,9 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
             {item.isNew && <span className="badge novo">NOVO!</span>}
             {rank > 0 && total > 0 && <span className="badge rank">#{rank}</span>}
             <span className="badge cat">{item.category}</span>
+            {distance != null && <span className="badge dist"><Navigation size={10} /> {formatDistance(distance)} de você</span>}
+            {fromBase != null && <span className="badge base-dist"><Home size={10} /> {formatDistance(fromBase)} da base</span>}
+            {item.isBase && <span className="badge base"><Home size={10} /> Onde ficaremos</span>}
           </div>
           <h3>{item.title}</h3>
           <span className="meta">
@@ -37,6 +41,11 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
           {item.address && <p className="addr">{item.address}</p>}
           <div className="row">
             {item.mapUrl && <a href={item.mapUrl} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Abrir no Google Maps</a>}
+            {state.me.isAdmin && (
+              <button className="link" onClick={() => patch(`/api/suggestions/${item.id}`, { isBase: !item.isBase }).catch((e) => alert((e as Error).message)).then(onChanged)}>
+                <Home size={14} /> {item.isBase ? "Não é mais a base" : `Marcar como base em ${item.city}`}
+              </button>
+            )}
           </div>
         </div>
       )}

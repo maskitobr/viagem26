@@ -45,3 +45,13 @@ describe("dates", () => {
     expect(validDate(null)).toBe(false);
   });
 });
+
+import { formatDistance } from "../lib/geo";
+describe("formatDistance", () => {
+  it("reads well near and far", () => {
+    expect(formatDistance(120)).toBe("120 m");
+    expect(formatDistance(1500)).toBe("1,5 km");
+    expect(formatDistance(42_000)).toBe("42 km");
+    expect(formatDistance(7_600_000)).toBe("7.600 km");
+  });
+});

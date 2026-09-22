@@ -25,6 +25,9 @@ export const items = pgTable("items", {
   photoName: text("photo_name"),
   imageKey: text("image_key"),
   visitDate: text("visit_date"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  isBase: boolean("is_base").notNull().default(false),
   createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

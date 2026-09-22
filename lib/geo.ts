@@ -22,3 +22,9 @@ export function clusterByDistance<T extends Point>(points: T[], radius = 120): {
   }
   return groups;
 }
+
+export function formatDistance(m: number): string {
+  if (m < 950) return `${Math.round(m / 10) * 10} m`;
+  if (m < 100_000) return `${(m / 1000).toFixed(m < 10_000 ? 1 : 0).replace(".", ",")} km`;
+  return `${Math.round(m / 1000).toLocaleString("pt-BR")} km`;
+}
