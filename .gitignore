@@ -47,3 +47,6 @@ next-env.d.ts
 /.worktrees/
 
 .dev.vars
+
+# Duplicatas criadas por sincronizacao do macOS ("arquivo 2.tsx"); nao fazem parte do app
+* [0-9].*
