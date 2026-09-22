@@ -12,8 +12,10 @@ export function Lightbox({ photo, state, onClose, onRemove }: { photo: Photo; st
       <div className="lb-top" onClick={(e) => e.stopPropagation()}>
         <span><Avatar p={author} size={24} /> {author?.name}{place ? ` · ${place}` : ""}</span>
         <span className="lb-actions">
-          <a href={photo.url} download aria-label="Baixar"><Download size={20} /></a>
-          {onRemove && (photo.personId === state.me.id || state.me.isAdmin) && <button onClick={() => onRemove(photo)} aria-label="Remover"><Trash2 size={20} /></button>}
+          <a href={photo.url} download><Download size={18} /> <span>Baixar</span></a>
+          {onRemove && (photo.personId === state.me.id || state.me.isAdmin) && (
+            <button className="lb-del" onClick={() => onRemove(photo)}><Trash2 size={18} /> <span>Excluir</span></button>
+          )}
           <button onClick={onClose} aria-label="Fechar"><X size={22} /></button>
         </span>
       </div>

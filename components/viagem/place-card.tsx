@@ -57,6 +57,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
       )}
       {item.visitedBy ? (
         <div className="dirs">
+          {photoCount > 0 && <button className="dir photos" onClick={onSeePhotos}><Camera size={13} /> {photoCount} {photoCount === 1 ? "foto" : "fotos"}</button>}
           <PhotoButton city={item.city} itemId={item.id} label="Enviar fotos daqui" className="dir photos" onDone={onPhotosAdded} />
           <button className="dir undo" onClick={() => onCheckIn(false)}><RotateCcw size={13} /> Ainda não visitamos</button>
         </div>
@@ -65,6 +66,7 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
           <Directions item={item} base={base} spot={spot} onNeedLocation={onNeedLocation} />
           <div className="dirs">
             <button className="dir checkin" onClick={() => onCheckIn(true)}><Check size={14} /> Já visitamos este lugar</button>
+            {photoCount > 0 && <button className="dir photos" onClick={onSeePhotos}><Camera size={13} /> {photoCount} {photoCount === 1 ? "foto" : "fotos"}</button>}
             <PhotoButton city={item.city} itemId={item.id} label="Enviar fotos daqui" className="dir photos" onDone={onPhotosAdded} />
           </div>
         </>

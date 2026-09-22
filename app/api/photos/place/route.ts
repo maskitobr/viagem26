@@ -5,7 +5,7 @@ import { fail, getPerson, json, unauthorized } from "../../../../lib/auth";
 import { validPhotoName } from "../../../../lib/places";
 import { validCoords } from "../../../../lib/geo";
 
-type PlaceIn = { placeId?: string; title?: string; address?: string; category?: string; mapUrl?: string; photoName?: string; rating?: number; priceLevel?: string; lat?: number; lng?: number };
+type PlaceIn = { placeId?: string; title?: string; address?: string; category?: string; mapUrl?: string; photoName?: string; rating?: number; priceLevel?: string; summary?: string; lat?: number; lng?: number };
 const clip = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, n) : null);
 
 // Confirma o lugar de um grupo de fotos: liga a um item existente ou cria o item na lista do destino.
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
         await db.insert(items).values({
           id: target, city, title, category: clip(place?.category, 30) ?? "Outro", address: clip(place?.address, 250),
           mapUrl: clip(place?.mapUrl, 500) ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${title} ${city}`)}`,
-          placeId, note: null, rating: rating > 0 && rating <= 5 ? rating : null, priceLevel: clip(place?.priceLevel, 10),
+          placeId, note: null, rating: rating > 0 && rating <= 5 ? rating : null, priceLevel: clip(place?.priceLevel, 10), summary: clip(place?.summary, 600),
           photoName: photoName && validPhotoName(photoName) ? photoName : null, imageKey: null, lat: validCoords(place?.lat, place?.lng) ? place!.lat! : null, lng: validCoords(place?.lat, place?.lng) ? place!.lng! : null, createdBy: me.id,
         });
         await db.insert(itemSeen).values({ personId: me.id, itemId: target }).onConflictDoNothing();

@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       id, city, title, category: str(f.get("category"), 30) ?? "Outro", address: str(f.get("address"), 250),
       mapUrl: str(f.get("mapUrl"), 500) ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${title} ${city}`)}`,
       placeId: str(f.get("placeId"), 200), visitDate: validDate(str(f.get("visitDate"), 10)) ? str(f.get("visitDate"), 10) : null, note: str(f.get("note"), 500), rating: rating > 0 && rating <= 5 ? rating : null,
-      priceLevel: str(f.get("priceLevel"), 10), photoName: photoName && validPhotoName(photoName) ? photoName : null, imageKey, lat: hasGeo ? lat : null, lng: hasGeo ? lng : null, createdBy: me.id,
+      priceLevel: str(f.get("priceLevel"), 10), summary: str(f.get("summary"), 600), photoName: photoName && validPhotoName(photoName) ? photoName : null, imageKey, lat: hasGeo ? lat : null, lng: hasGeo ? lng : null, createdBy: me.id,
     });
     await db.insert(itemSeen).values({ personId: me.id, itemId: id }).onConflictDoNothing();
     return json({ id }, 201);

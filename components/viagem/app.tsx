@@ -181,7 +181,11 @@ export function App() {
           setTimeout(() => { document.getElementById(`item-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 80);
           setTimeout(() => setFocus(""), 2600);
         }} />
-      ) : tab === "fotos" ? <PhotoWall state={state} city={city} onChanged={load} initialItem={photoItem} /> : tab === "agenda" ? <Agenda state={state} onChanged={load} /> : <Memory state={state} />}
+      ) : tab === "fotos" ? <PhotoWall state={state} city={city} onChanged={load} initialItem={photoItem} /> : tab === "agenda" ? <Agenda state={state} onChanged={load} /> : <Memory state={state} onRemovePhoto={async (p) => {
+        if (!confirm("Remover esta foto?")) return;
+        try { await api(`/api/photos/${p.id}`, { method: "DELETE" }); flash("Foto removida."); } catch (e) { flash((e as Error).message); }
+        load();
+      }} />}
       {editing && <EditPlace item={editing} onClose={() => setEditing(null)} onSaved={() => { flash("Lugar atualizado."); load(); }} />}
       {editingPhoto && <ProfilePhotoEditor name={state.me.name} hasPhoto={!!state.me.photo} onClose={() => setEditingPhoto(false)} onSaved={load} />}
 

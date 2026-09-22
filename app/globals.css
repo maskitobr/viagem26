@@ -238,3 +238,42 @@ a { color: var(--blue); }
 .loose { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .loose h4 { font-family: system-ui, sans-serif; font-size: 13px; color: var(--muted); display: flex; gap: 5px; align-items: center; }
 .pin-step { background: var(--coral); }
+
+/* Álbum de cada lugar na aba Fotos */
+.album { display: grid; gap: 12px; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; margin: 14px 0; }
+@media (min-width: 620px) { .album { grid-template-columns: 240px 1fr; align-items: start; } }
+.album-info { display: grid; gap: 6px; align-content: start; }
+.album-img { width: 100%; height: 130px; object-fit: cover; border-radius: 12px; }
+.album-info h3 { font-size: 19px; }
+.album-sum { margin: 2px 0; font-size: 13.5px; line-height: 1.45; }
+.album-note { margin: 0; font-size: 13px; color: var(--muted); font-style: italic; }
+.album-info .addr { display: inline-flex; gap: 4px; align-items: flex-start; }
+.album-info .badge { justify-self: start; }
+.album-acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+.album-photos h4 { font-family: system-ui, sans-serif; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.loose-album { display: block; }
+
+/* Agenda: visões e calendário */
+.viewseg { grid-template-columns: 1fr 1fr; margin-bottom: 12px; }
+.viewseg button { display: inline-flex; gap: 6px; align-items: center; justify-content: center; }
+.ag-week { margin: 16px 0; }
+.ag-week h2 { font-size: 15px; font-family: system-ui, sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+.cal { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; margin: 12px 0; }
+.cal h2 { font-size: 18px; margin-bottom: 10px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-wd { text-align: center; font-size: 11px; color: var(--muted); text-transform: uppercase; padding-bottom: 4px; }
+.cal-day { aspect-ratio: 1; border: 1.5px solid transparent; background: #faf5ea; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0; }
+.cal-day b { font-size: 14px; font-weight: 600; }
+.cal-day.out { opacity: .35; }
+.cal-day.has { background: #fff; border-color: var(--line); font-weight: 800; }
+.cal-day.on { border-color: var(--coral); background: #fdece7; }
+.cal-day:disabled { cursor: default; }
+.cal-dots { display: flex; gap: 2px; height: 6px; }
+.cal-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.cal-dots i.c-chi { background: var(--blue); } .cal-dots i.c-dal { background: var(--coral); } .cal-dots i.c-orl { background: var(--green); }
+.cal-dots i.vis { box-shadow: 0 0 0 1.5px var(--green); }
+
+.lb-actions a, .lb-actions button { gap: 5px; font-size: 13px; font-weight: 600; padding: 0 10px; border-radius: 999px; }
+.lb-actions a, .lb-actions .lb-del { background: rgba(255, 255, 255, .15); }
+.lb-actions .lb-del { color: #ffb4a8; }
+@media (max-width: 420px) { .lb-actions a span, .lb-actions button span { display: none; } .lb-actions a, .lb-actions button { padding: 0; } }

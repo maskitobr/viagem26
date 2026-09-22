@@ -78,7 +78,7 @@ function DayMap({ stops }: { stops: Item[] }) {
   return <div className="daymap" ref={box} aria-label="Mapa do dia" />;
 }
 
-export function Memory({ state }: { state: State }) {
+export function Memory({ state, onRemovePhoto }: { state: State; onRemovePhoto: (p: Photo) => void }) {
   const days = useMemo(() => buildDays(state), [state]);
   const [view, setView] = useState<Photo | null>(null);
   const person = (id: string) => state.people.find((p) => p.id === id);
@@ -107,7 +107,15 @@ export function Memory({ state }: { state: State }) {
 
       {days.map((d) => {
         const stopIds = new Set(d.stops.map((s) => s.id));
-        const loose = d.photos.filter((p) => !p.itemId || !stopIds.has(p.itemId));
+        // Fotos de um lugar que não foi parada deste dia continuam agrupadas pelo lugar.
+        const others = d.photos.filter((p) => !p.itemId || !stopIds.has(p.itemId));
+        const byPlace = new Map<string, Photo[]>();
+        const loose: Photo[] = [];
+        for (const p of others) {
+          const place = p.itemId ? state.items.find((i) => i.id === p.itemId) : null;
+          if (place) byPlace.set(place.id, [...(byPlace.get(place.id) ?? []), p]);
+          else loose.push(p);
+        }
         return (
           <article className="mem-day" key={d.date}>
             <header>
@@ -140,6 +148,16 @@ export function Memory({ state }: { state: State }) {
               })}
             </ol>
 
+            {[...byPlace.entries()].map(([id, list]) => {
+              const place = state.items.find((i) => i.id === id)!;
+              return (
+                <div className="loose" key={id}>
+                  <h4><Camera size={14} /> {place.title} <span className="muted">· {list.length} {list.length === 1 ? "foto" : "fotos"}</span></h4>
+                  <div className="strip">{list.map((p) => <button key={p.id} onClick={() => setView(p)}><img src={p.url} alt="" loading="lazy" /></button>)}</div>
+                </div>
+              );
+            })}
+
             {loose.length > 0 && (
               <div className="loose">
                 <h4><Camera size={14} /> Outras fotos do dia</h4>
@@ -150,7 +168,7 @@ export function Memory({ state }: { state: State }) {
         );
       })}
 
-      {view && <Lightbox photo={view} state={state} onClose={() => setView(null)} />}
+      {view && <Lightbox photo={view} state={state} onClose={() => setView(null)} onRemove={onRemovePhoto} />}
     </section>
   );
 }

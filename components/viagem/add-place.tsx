@@ -38,7 +38,7 @@ export function AddPlace({ city, onClose, onAdded, base, spot }: { city: string;
     } catch (err) { setMsg((err as Error).message); setBusy(false); }
   }
 
-  const addResult = (p: PlaceResult) => submit({ title: p.title, category: p.category, address: p.address, mapUrl: p.mapUrl, placeId: p.placeId, rating: p.rating, priceLevel: p.priceLevel, photoName: p.photoName, lat: p.lat, lng: p.lng });
+  const addResult = (p: PlaceResult) => submit({ title: p.title, category: p.category, address: p.address, mapUrl: p.mapUrl, placeId: p.placeId, rating: p.rating, priceLevel: p.priceLevel, photoName: p.photoName, summary: p.summary, lat: p.lat, lng: p.lng });
 
   return (
     <div className="sheet-back" onClick={onClose}>

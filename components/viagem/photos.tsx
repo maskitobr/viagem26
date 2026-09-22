@@ -4,6 +4,7 @@ import { Camera, MapPin } from "lucide-react";
 import { api, uploadPhotos, type Photo, type State } from "../../lib/client";
 import { PlaceConfirm } from "./place-confirm";
 import { Lightbox } from "./lightbox";
+import { Album } from "./album";
 import { Avatar } from "./avatar";
 
 export function PhotoWall({ state, city, onChanged, initialItem = "" }: { state: State; city: string; onChanged: () => void | Promise<void>; initialItem?: string }) {
@@ -62,10 +63,7 @@ export function PhotoWall({ state, city, onChanged, initialItem = "" }: { state:
       </div>
       {shown.length === 0 ? <p className="empty">Ainda não há fotos em {city}. Seja o primeiro a enviar!</p> : (
         groups.map(([k, list]) => (
-          <div key={k || "none"}>
-            <h3 className="wall-title">{k ? (places.find((i) => i.id === k)?.title ?? "Lugar") : "Sem lugar definido"} <small>{list.length}</small></h3>
-            <div className="wall">{list.map((p) => <button key={p.id} onClick={() => setView(p)} aria-label="Ver foto"><img src={p.url} alt={`Foto de ${byId.get(p.personId)?.name ?? ""} em ${city}`} loading="lazy" /></button>)}</div>
-          </div>
+          <Album key={k || "none"} place={places.find((i) => i.id === k) ?? null} photos={list} state={state} onOpen={setView} onPhotosAdded={(sent) => { if (sent) setMsg(""); onChanged(); }} />
         ))
       )}
       {organizing && <PlaceConfirm state={state} city={city} onClose={() => setOrganizing(false)} onDone={() => { onChanged(); }} />}

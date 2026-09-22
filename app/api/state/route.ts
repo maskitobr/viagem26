@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       people: ppl.map((p) => ({ id: p.id, name: p.name, color: p.color, photo: photoUrl(p.photoKey) })),
       items: its.map((i) => ({
         id: i.id, placeId: i.placeId, visitDate: i.visitDate, lat: i.lat, lng: i.lng, isBase: i.isBase, visitedBy: i.visitedBy, visitedAt: i.visitedAt?.toISOString() ?? null, city: i.city, title: i.title, category: i.category, address: i.address, mapUrl: i.mapUrl, note: i.note,
-        rating: i.rating, priceLevel: i.priceLevel, image: imageOf(i), hasOwnImage: !!i.imageKey, createdBy: i.createdBy, createdAt: i.createdAt.toISOString(),
+        rating: i.rating, priceLevel: i.priceLevel, summary: i.summary, image: imageOf(i), hasOwnImage: !!i.imageKey, createdBy: i.createdBy, createdAt: i.createdAt.toISOString(),
         votes: votesBy[i.id] ?? {}, isNew: isNewFor(i, me.id, seen),
       })),
       photos: phs.map((p) => ({ id: p.id, personId: p.personId, city: p.city, itemId: p.itemId, lat: p.lat, lng: p.lng, url: `/api/file/${p.key}`, takenAt: p.takenAt?.toISOString() ?? null, createdAt: p.createdAt.toISOString() })),

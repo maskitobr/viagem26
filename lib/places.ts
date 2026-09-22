@@ -1,7 +1,7 @@
 import { isCity, type City } from "./scoring";
 import { distanceMeters, validCoords } from "./geo";
 
-export type Place = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; lat: number | null; lng: number | null; distance?: number };
+export type Place = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; summary: string | null; lat: number | null; lng: number | null; distance?: number };
 
 const centers: Record<City, { latitude: number; longitude: number }> = {
   Chicago: { latitude: 41.8781, longitude: -87.6298 },
@@ -24,6 +24,7 @@ export function normalizePlace(x: any): Place {
     priceLevel: prices[x.priceLevel] ?? null,
     mapUrl: x.googleMapsUri || `https://www.google.com/maps/place/?q=place_id:${x.id}`,
     photoName: x.photos?.[0]?.name ?? null,
+    summary: x.editorialSummary?.text ?? null,
     lat: typeof x.location?.latitude === "number" ? x.location.latitude : null,
     lng: typeof x.location?.longitude === "number" ? x.location.longitude : null,
   };
@@ -38,7 +39,7 @@ export async function searchPlaces(query: string, city: string, near?: { lat: nu
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location",
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location,places.editorialSummary",
     },
     body: JSON.stringify({ textQuery: `${query.slice(0, 80)} em ${city}`, languageCode: "pt-BR", pageSize: 10, locationBias: { circle: { center: near && validCoords(near.lat, near.lng) ? { latitude: near.lat, longitude: near.lng } : centers[city], radius: near ? 15000 : 30000 } } }),
   });
@@ -66,7 +67,7 @@ export async function nearbyPlaces(lat: number, lng: number): Promise<Place[]> {
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
-      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location",
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location,places.editorialSummary",
     },
     body: JSON.stringify({ maxResultCount: 10, rankPreference: "DISTANCE", languageCode: "pt-BR", locationRestriction: { circle: { center: { latitude: lat, longitude: lng }, radius: 250 } } }),
   });
@@ -75,14 +76,16 @@ export async function nearbyPlaces(lat: number, lng: number): Promise<Place[]> {
   return (data.places ?? []).map((x) => ({ ...normalizePlace(x), distance: x.location ? Math.round(distanceMeters({ lat, lng }, { lat: x.location.latitude, lng: x.location.longitude })) : undefined }));
 }
 
-// Coordenadas de um lugar já conhecido do Google (usado para preencher itens antigos, salvos sem localização).
-export async function placeLocation(placeId: string): Promise<{ lat: number; lng: number } | null> {
+// Dados de um lugar já conhecido do Google: completa itens salvos antes destes campos existirem.
+export type PlaceDetails = { lat: number | null; lng: number | null; summary: string | null; rating: number | null; priceLevel: string | null; photoName: string | null };
+export async function placeDetails(placeId: string): Promise<PlaceDetails | null> {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key || !/^[\w-]{5,300}$/.test(placeId)) return null;
-  const r = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "location" } });
+  const r = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "location,editorialSummary,rating,priceLevel,photos" } });
   if (!r.ok) return null;
-  const d = (await r.json()) as { location?: { latitude: number; longitude: number } };
-  return validCoords(d.location?.latitude, d.location?.longitude) ? { lat: d.location!.latitude, lng: d.location!.longitude } : null;
+  const p = normalizePlace({ ...((await r.json()) as object), id: placeId });
+  const ok = validCoords(p.lat, p.lng);
+  return { lat: ok ? p.lat : null, lng: ok ? p.lng : null, summary: p.summary, rating: p.rating, priceLevel: p.priceLevel, photoName: p.photoName };
 }
 
 // Último recurso: procura pelo nome dentro da cidade e usa a coordenada do primeiro resultado.
