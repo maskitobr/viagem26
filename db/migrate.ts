@@ -13,6 +13,8 @@ export const statements = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS lng double precision`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS is_base boolean NOT NULL DEFAULT false`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS summary text`,
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'place'`,
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS flight jsonb`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS visited_by text`,
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS visited_at timestamptz`,
   `CREATE INDEX IF NOT EXISTS items_city_idx ON items (city)`,

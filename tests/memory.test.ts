@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildDays } from "../components/viagem/memory";
 import type { Item, Photo, State } from "../lib/client";
 
-const item = (o: Partial<Item>): Item => ({ id: "x", placeId: null, visitDate: null, lat: null, lng: null, isBase: false, visitedBy: null, visitedAt: null, city: "Chicago", title: "Lugar", category: "Passeio", address: null, mapUrl: null, note: null, rating: null, priceLevel: null, summary: null, image: null, hasOwnImage: false, createdBy: "p1", createdAt: "2026-11-01T00:00:00Z", votes: {}, isNew: false, ...o });
+const item = (o: Partial<Item>): Item => ({ id: "x", kind: "place", flight: null, placeId: null, visitDate: null, lat: null, lng: null, isBase: false, visitedBy: null, visitedAt: null, city: "Chicago", title: "Lugar", category: "Passeio", address: null, mapUrl: null, note: null, rating: null, priceLevel: null, summary: null, image: null, hasOwnImage: false, createdBy: "p1", createdAt: "2026-11-01T00:00:00Z", votes: {}, isNew: false, ...o });
 const photo = (o: Partial<Photo>): Photo => ({ id: "f", personId: "p1", city: "Chicago", itemId: null, lat: null, lng: null, url: "/f", takenAt: null, createdAt: "2026-11-21T20:00:00Z", ...o });
 const state = (items: Item[], photos: Photo[] = []): State => ({ me: { id: "p1", name: "Bruno", color: "#000", isAdmin: true }, people: [], items, photos });
 

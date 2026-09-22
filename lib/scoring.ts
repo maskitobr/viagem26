@@ -1,6 +1,6 @@
 export const CHOICES = { quero: 2, talvez: 1, passo: 0 } as const;
 export type Choice = keyof typeof CHOICES;
-export const CITIES = ["Chicago", "Dallas", "Orlando"] as const;
+export const CITIES = ["Chicago", "Dallas", "Orlando", "Voos"] as const;
 export type City = (typeof CITIES)[number];
 
 export const isChoice = (v: unknown): v is Choice => typeof v === "string" && v in CHOICES;

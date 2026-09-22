@@ -5,6 +5,7 @@ import { formatDistance } from "../../lib/geo";
 import { CHOICE_LABEL, patch, score, type Choice, type Item, type Person, type State } from "../../lib/client";
 import { Avatar } from "./avatar";
 import { Directions } from "./directions";
+import { FlightStrip } from "./flight-strip";
 import { PhotoButton } from "./photo-button";
 
 export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChanged, distance, fromBase, focus, base, spot, onNeedLocation, onCheckIn, onEdit, onSeePhotos, onPhotosAdded, photoCount = 0 }: { item: Item; state: State; rank: number; onVote: (c: Choice | null) => void; onOpen: () => void; onDelete: () => void; onChanged: () => void; distance?: number | null; fromBase?: number | null; focus?: boolean; base: Item | null; spot: { lat: number; lng: number } | null; onNeedLocation: () => void; onCheckIn: (visited: boolean) => void; onEdit: () => void; onSeePhotos: () => void; onPhotosAdded: (sent: number, errors: string[]) => void; photoCount?: number }) {
@@ -14,10 +15,23 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
   const missing = state.people.filter((p) => !item.votes[p.id]);
   const author = byId.get(item.createdBy);
   const canDelete = item.createdBy === state.me.id || state.me.isAdmin;
+  const isFlight = item.kind === "flight", logistics = item.kind !== "place";
   const total = score(item.votes), visitor = item.visitedBy ? byId.get(item.visitedBy) : null;
   return (
     <article id={`item-${item.id}`} className={`card ${item.isNew ? "is-new" : ""} ${focus ? "is-focus" : ""} ${item.isBase ? "is-base" : ""} ${item.visitedBy ? "is-done" : ""}`}>
       {canDelete && <button className="card-del" aria-label={`Remover ${item.title}`} title="Remover" onClick={() => confirm(`Remover "${item.title}" da lista?`) && onDelete()}><Trash2 size={16} /></button>}
+      {isFlight && item.flight ? (
+        <button className="card-main flightcard" onClick={() => { setOpen(!open); if (item.isNew) onOpen(); }} aria-expanded={open}>
+          <div className="grow">
+            <div className="badges">
+              {item.isNew && <span className="badge novo">NOVO!</span>}
+              {item.visitedBy && <span className="badge done"><Check size={10} /> Voamos{visitor ? ` · ${visitor.name}` : ""}</span>}
+              {photoCount > 0 && <span className="badge fotos"><Camera size={10} /> {photoCount} {photoCount === 1 ? "foto" : "fotos"}</span>}
+            </div>
+            <FlightStrip f={item.flight} />
+          </div>
+        </button>
+      ) : (
       <button className="card-main" onClick={() => { setOpen(!open); if (item.isNew) onOpen(); }} aria-expanded={open}>
         {item.image && !broken ? <img src={item.image} alt="" loading="lazy" onError={() => setBroken(true)} /> : <div className="ph"><MapPin size={26} /></div>}
         <div className="grow">
@@ -37,8 +51,9 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
             <Avatar p={author} size={16} /> {author?.name ?? "alguém"}
           </span>
         </div>
-        <div className="pts" aria-label={`${total} pontos`}><b>{total}</b><small>pts</small></div>
+        {!logistics && <div className="pts" aria-label={`${total} pontos`}><b>{total}</b><small>pts</small></div>}
       </button>
+      )}
       {open && (
         <div className="card-more">
           {item.note && <p>“{item.note}”</p>}
@@ -59,33 +74,33 @@ export function PlaceCard({ item, state, rank, onVote, onOpen, onDelete, onChang
         <div className="dirs">
           {photoCount > 0 && <button className="dir photos" onClick={onSeePhotos}><Camera size={13} /> {photoCount} {photoCount === 1 ? "foto" : "fotos"}</button>}
           <PhotoButton city={item.city} itemId={item.id} label="Enviar fotos daqui" className="dir photos" onDone={onPhotosAdded} />
-          <button className="dir undo" onClick={() => onCheckIn(false)}><RotateCcw size={13} /> Ainda não visitamos</button>
+          <button className="dir undo" onClick={() => onCheckIn(false)}><RotateCcw size={13} /> {isFlight ? "Ainda não voamos" : "Ainda não visitamos"}</button>
         </div>
       ) : (
         <>
-          <Directions item={item} base={base} spot={spot} onNeedLocation={onNeedLocation} />
+          {!isFlight && <Directions item={item} base={base} spot={spot} onNeedLocation={onNeedLocation} />}
           <div className="dirs">
-            <button className="dir checkin" onClick={() => onCheckIn(true)}><Check size={14} /> Já visitamos este lugar</button>
+            <button className="dir checkin" onClick={() => onCheckIn(true)}><Check size={14} /> {isFlight ? "Já voamos" : "Já visitamos este lugar"}</button>
             {photoCount > 0 && <button className="dir photos" onClick={onSeePhotos}><Camera size={13} /> {photoCount} {photoCount === 1 ? "foto" : "fotos"}</button>}
             <PhotoButton city={item.city} itemId={item.id} label="Enviar fotos daqui" className="dir photos" onDone={onPhotosAdded} />
           </div>
         </>
       )}
-      <label className="dayrow">Dia sugerido
+      {!logistics && <label className="dayrow">Dia sugerido
         <input type="date" min="2026-11-19" value={item.visitDate ?? ""} onChange={(e) => patch(`/api/suggestions/${item.id}`, { visitDate: e.target.value || null }).catch(() => {}).then(onChanged)} />
-      </label>
-      <div className="votes" role="group" aria-label="Seu voto">
+      </label>}
+      {!logistics && <div className="votes" role="group" aria-label="Seu voto">
         {(Object.keys(CHOICE_LABEL) as Choice[]).map((c) => (
           <button key={c} className={`vote v-${c} ${mine === c ? "on" : ""}`} aria-pressed={mine === c} onClick={() => onVote(mine === c ? null : c)}>{CHOICE_LABEL[c]}</button>
         ))}
-      </div>
-      <div className="tally">
+      </div>}
+      {!logistics && <div className="tally">
         {(Object.keys(CHOICE_LABEL) as Choice[]).map((c) => {
           const who = state.people.filter((p) => item.votes[p.id] === c);
           return who.length ? <span key={c} className={`grp v-${c}`}>{CHOICE_LABEL[c]} {who.map((p) => <Avatar key={p.id} p={p} size={20} />)}</span> : null;
         })}
         {missing.length > 0 && <span className="muted">Faltam: {missing.map((p) => p.name).join(", ")}</span>}
-      </div>
+      </div>}
     </article>
   );
 }

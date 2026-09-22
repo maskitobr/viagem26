@@ -1,6 +1,8 @@
+import type { FlightInfo } from "./flights";
+
 export type Choice = "quero" | "talvez" | "passo";
 export type Person = { id: string; name: string; color: string; photo?: string | null };
-export type Item = { id: string; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; visitedBy: string | null; visitedAt: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; summary: string | null; image: string | null; hasOwnImage: boolean; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
+export type Item = { id: string; kind: "place" | "flight" | "airport"; flight: FlightInfo | null; placeId: string | null; visitDate: string | null; lat: number | null; lng: number | null; isBase: boolean; visitedBy: string | null; visitedAt: string | null; city: string; title: string; category: string; address: string | null; mapUrl: string | null; note: string | null; rating: number | null; priceLevel: string | null; summary: string | null; image: string | null; hasOwnImage: boolean; createdBy: string; createdAt: string; votes: Record<string, Choice>; isNew: boolean };
 export type Photo = { id: string; personId: string; city: string; itemId: string | null; lat: number | null; lng: number | null; url: string; takenAt: string | null; createdAt: string };
 export type State = { me: Person & { isAdmin: boolean }; people: Person[]; items: Item[]; photos: Photo[] };
 export type PlaceResult = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; summary: string | null; lat: number | null; lng: number | null; distance?: number };
@@ -60,7 +62,7 @@ export async function uploadPhotos(files: File[], to: { city: string; itemId?: s
   return { sent, errors };
 }
 
-export const CITIES = ["Chicago", "Dallas", "Orlando"] as const;
+export const CITIES = ["Chicago", "Dallas", "Orlando", "Voos"] as const;
 export const CATEGORIES = ["Restaurante", "Passeio", "Parque", "Compras", "Museu", "Outro"];
 export const CHOICE_LABEL: Record<Choice, string> = { quero: "Quero muito", talvez: "Talvez", passo: "Passo" };
 export const SCORE: Record<Choice, number> = { quero: 2, talvez: 1, passo: 0 };

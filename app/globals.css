@@ -277,3 +277,31 @@ a { color: var(--blue); }
 .lb-actions a, .lb-actions .lb-del { background: rgba(255, 255, 255, .15); }
 .lb-actions .lb-del { color: #ffb4a8; }
 @media (max-width: 420px) { .lb-actions a span, .lb-actions button span { display: none; } .lb-actions a, .lb-actions button { padding: 0; } }
+
+/* Voo no estilo do e-mail da companhia: origem -> linha com avião -> destino */
+.fstrip { display: grid; gap: 8px; width: 100%; }
+.fs-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.fs-num { display: inline-flex; gap: 4px; align-items: center; background: var(--sky); color: #fff; border-radius: 999px; padding: 3px 9px; font-weight: 800; letter-spacing: .02em; }
+.fs-dur { margin-left: auto; }
+.fs-body { display: grid; grid-template-columns: minmax(64px, 1fr) minmax(70px, 1.4fr) minmax(64px, 1fr); align-items: center; gap: 8px; }
+.fs-side { display: grid; gap: 1px; min-width: 0; }
+.fs-side.end { text-align: right; justify-items: end; }
+.fs-side b { font-size: 19px; font-family: Georgia, serif; line-height: 1.1; }
+.fs-side b sup { font-size: 10px; color: var(--coral); font-family: system-ui, sans-serif; margin-left: 1px; }
+.fs-code { font-weight: 800; font-size: 13px; letter-spacing: .06em; color: var(--sky); }
+.fs-city, .fs-term { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.fs-line { display: flex; align-items: center; gap: 3px; color: var(--coral); }
+.fs-dot { width: 7px; height: 7px; border-radius: 50%; border: 2px solid var(--coral); flex: none; }
+.fs-bar { flex: 1; height: 0; border-top: 2px dashed #f0b3a5; }
+.fs-plane { transform: rotate(90deg); flex: none; }
+.fstrip.compact .fs-side b { font-size: 16px; }
+.card-main.flightcard { align-items: stretch; }
+.ag-flight { display: block; padding: 10px 0; }
+.foundflight { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; margin: 10px 0; display: grid; gap: 10px; }
+.flightsearch { display: grid; gap: 10px; margin-top: 4px; }
+.flightsearch label, .manual .two label { display: grid; gap: 4px; font-weight: 600; font-size: 14px; }
+.flightsearch input { border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; background: #fff; min-height: 44px; font-weight: 400; }
+.manual .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg.three { grid-template-columns: repeat(3, 1fr); }
+.seg.three button { font-size: 13px; display: inline-flex; gap: 4px; align-items: center; justify-content: center; }
+.cal-dots i.c-voos { background: var(--sky); }

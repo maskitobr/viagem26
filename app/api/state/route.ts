@@ -3,6 +3,7 @@ import { getDb } from "../../../db";
 import { itemSeen, itemVotes, items, people, photos } from "../../../db/schema";
 import { fail, getPerson, json, unauthorized } from "../../../lib/auth";
 import { isNewFor } from "../../../lib/scoring";
+import type { Item } from "../../../lib/client";
 
 const photoUrl = (k: string | null) => (k ? `/api/file/${k}` : null);
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
       me: { id: me.id, name: me.name, color: me.color, isAdmin: me.isAdmin, photo: photoUrl(me.photoKey) },
       people: ppl.map((p) => ({ id: p.id, name: p.name, color: p.color, photo: photoUrl(p.photoKey) })),
       items: its.map((i) => ({
-        id: i.id, placeId: i.placeId, visitDate: i.visitDate, lat: i.lat, lng: i.lng, isBase: i.isBase, visitedBy: i.visitedBy, visitedAt: i.visitedAt?.toISOString() ?? null, city: i.city, title: i.title, category: i.category, address: i.address, mapUrl: i.mapUrl, note: i.note,
+        id: i.id, kind: i.kind, flight: i.flight as Item["flight"], placeId: i.placeId, visitDate: i.visitDate, lat: i.lat, lng: i.lng, isBase: i.isBase, visitedBy: i.visitedBy, visitedAt: i.visitedAt?.toISOString() ?? null, city: i.city, title: i.title, category: i.category, address: i.address, mapUrl: i.mapUrl, note: i.note,
         rating: i.rating, priceLevel: i.priceLevel, summary: i.summary, image: imageOf(i), hasOwnImage: !!i.imageKey, createdBy: i.createdBy, createdAt: i.createdAt.toISOString(),
         votes: votesBy[i.id] ?? {}, isNew: isNewFor(i, me.id, seen),
       })),

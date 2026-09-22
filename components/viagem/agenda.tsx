@@ -3,9 +3,10 @@ import { useMemo, useState } from "react";
 import { CalendarDays, Check, LayoutList, MapPin } from "lucide-react";
 import { WEEKDAYS, dayNumber, formatDay, formatWeek, monthKey, monthWeeks, weekStart } from "../../lib/dates";
 import { CHOICE_LABEL, patch, score, type Choice, type Item, type State } from "../../lib/client";
+import { FlightStrip } from "./flight-strip";
 
 const TRIP_START = "2026-11-19";
-const CITY_CLASS: Record<string, string> = { Chicago: "c-chi", Dallas: "c-dal", Orlando: "c-orl" };
+const CITY_CLASS: Record<string, string> = { Chicago: "c-chi", Dallas: "c-dal", Orlando: "c-orl", Voos: "c-voos" };
 
 export function Agenda({ state, onChanged }: { state: State; onChanged: () => void | Promise<void> }) {
   const [view, setView] = useState<"lista" | "calendario">("lista");
@@ -32,6 +33,13 @@ export function Agenda({ state, onChanged }: { state: State; onChanged: () => vo
 
   const Row = ({ i }: { i: Item }) => {
     const mine = i.votes[state.me.id] as Choice | undefined;
+    if (i.kind === "flight" && i.flight) {
+      return (
+        <li className={`ag-row ag-flight ${i.visitedBy ? "done" : ""}`}>
+          <FlightStrip f={i.flight} />
+        </li>
+      );
+    }
     return (
       <li className={`ag-row ${i.visitedBy ? "done" : ""}`}>
         <div className="grow">

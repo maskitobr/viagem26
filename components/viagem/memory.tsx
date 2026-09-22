@@ -7,6 +7,7 @@ import { formatDay } from "../../lib/dates";
 import { distanceMeters, formatDistance } from "../../lib/geo";
 import type { Item, Photo, State } from "../../lib/client";
 import { Avatar } from "./avatar";
+import { FlightStrip } from "./flight-strip";
 import { Lightbox } from "./lightbox";
 
 // O diário usa a hora do destino, então as lembranças ficam certas mesmo lendo do Brasil.
@@ -136,7 +137,7 @@ export function Memory({ state, onRemovePhoto }: { state: State; onRemovePhoto: 
                     <span className="step-n">{n + 1}</span>
                     <div className="grow">
                       {leg != null && <span className="leg"><MapPin size={11} /> {formatDistance(leg)} desde a parada anterior</span>}
-                      <strong>{s.title}</strong>
+                      {s.kind === "flight" && s.flight ? <FlightStrip f={s.flight} compact /> : <strong>{s.title}</strong>}
                       <span className="meta">{timeOf(s.visitedAt!, s.city)} · {s.category} · <Avatar p={who} size={16} /> {who?.name ?? "alguém"}</span>
                       {s.note && <span className="muted">“{s.note}”</span>}
                       {mine.length > 0 && (

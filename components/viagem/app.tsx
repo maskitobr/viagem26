@@ -112,7 +112,7 @@ export function App() {
   const myNew = newBy(city), allNew = state.items.filter((i) => i.isNew);
   const newAuthors = [...new Set(myNew.map((i) => state.people.find((p) => p.id === i.createdBy)?.name).filter(Boolean))];
   const pending = items.filter((i) => !i.visitedBy), done = items.filter((i) => i.visitedBy);
-  const top = pending.filter((i) => score(i.votes) > 0).slice(0, 10);
+  const top = pending.filter((i) => i.kind === "place" && score(i.votes) > 0).slice(0, 10);
 
   return (
     <main className="wrap">
@@ -160,7 +160,7 @@ export function App() {
             </div>
           )}
           {sort === "perto" && !spot && <p className="muted">{geo.message || "Procurando sua localização…"}</p>}
-          <button className="primary wide" onClick={() => setAdding(true)}><Plus size={18} /> Adicionar lugar em {city}</button>
+          <button className="primary wide" onClick={() => setAdding(true)}><Plus size={18} /> {city === "Voos" ? "Adicionar voo" : `Adicionar lugar em ${city}`}</button>
           {pending.length === 0 ? <p className="empty">{done.length > 0 ? `Tudo visitado em ${city}! 🎉` : `Nenhum lugar em ${city} ainda. Busque um restaurante ou passeio e adicione!`}</p> : (
             <div className="list">{pending.map((i, idx) => <PlaceCard key={i.id} item={i} state={state} rank={idx + 1} onVote={(c) => vote(i.id, c)} onOpen={() => seen(i.id)} onDelete={() => remove(i.id)} onChanged={load} distance={distanceOf(i)} fromBase={fromBase(i)} focus={focus === i.id} base={base} spot={spot} onNeedLocation={geo.start} onCheckIn={(v) => checkIn(i, v)} onEdit={() => setEditing(i)} onSeePhotos={() => seePhotos(i)} onPhotosAdded={onPhotosAdded} photoCount={photosOf(i.id)} />)}</div>
           )}
@@ -189,7 +189,7 @@ export function App() {
       {editing && <EditPlace item={editing} onClose={() => setEditing(null)} onSaved={() => { flash("Lugar atualizado."); load(); }} />}
       {editingPhoto && <ProfilePhotoEditor name={state.me.name} hasPhoto={!!state.me.photo} onClose={() => setEditingPhoto(false)} onSaved={load} />}
 
-      {adding && <AddPlace city={city} base={base} spot={spot} onClose={() => setAdding(false)} onAdded={() => { flash("Lugar adicionado!"); load(); }} />}
+      {adding && <AddPlace city={city} base={base} spot={spot} startOnFlight={city === "Voos"} onClose={() => setAdding(false)} onAdded={() => { flash("Lugar adicionado!"); load(); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </main>
   );

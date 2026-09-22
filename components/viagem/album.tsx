@@ -3,6 +3,7 @@ import { Check, ExternalLink, MapPin, Star } from "lucide-react";
 import type { Item, Photo, State } from "../../lib/client";
 import { formatDay } from "../../lib/dates";
 import { PhotoButton } from "./photo-button";
+import { FlightStrip } from "./flight-strip";
 
 // Álbum de um lugar: à esquerda o que o Google conta sobre ele, à direita as nossas fotos.
 export function Album({ place, photos, state, onOpen, onPhotosAdded }: {
@@ -37,13 +38,17 @@ export function Album({ place, photos, state, onOpen, onPhotosAdded }: {
   return (
     <section className="album">
       <aside className="album-info">
-        {place.image && <img className="album-img" src={place.image} alt={place.title} loading="lazy" />}
-        <h3>{place.title}</h3>
-        <span className="meta">
-          {place.category}
-          {place.rating ? <> · <Star size={12} fill="currentColor" /> {place.rating.toFixed(1)}</> : null}
-          {place.priceLevel ? ` · ${place.priceLevel}` : ""}
-        </span>
+        {place.kind === "flight" && place.flight ? <FlightStrip f={place.flight} compact /> : (
+          <>
+            {place.image && <img className="album-img" src={place.image} alt={place.title} loading="lazy" />}
+            <h3>{place.title}</h3>
+            <span className="meta">
+              {place.category}
+              {place.rating ? <> · <Star size={12} fill="currentColor" /> {place.rating.toFixed(1)}</> : null}
+              {place.priceLevel ? ` · ${place.priceLevel}` : ""}
+            </span>
+          </>
+        )}
         {place.summary && <p className="album-sum">{place.summary}</p>}
         {place.note && <p className="album-note">“{place.note}”</p>}
         {place.address && <span className="addr"><MapPin size={11} /> {place.address}</span>}

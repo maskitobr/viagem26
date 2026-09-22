@@ -1,15 +1,16 @@
 "use client";
 import { useState } from "react";
-import { Home, Navigation, Plus, Search, Star, X } from "lucide-react";
+import { Home, Navigation, Plane, Plus, Search, Star, X } from "lucide-react";
 import { ApiError, CATEGORIES, CITY_CENTER, api, compress, type Item, type PlaceResult } from "../../lib/client";
 import { distanceMeters, formatDistance } from "../../lib/geo";
+import { AddFlight } from "./add-flight";
 
-export function AddPlace({ city, onClose, onAdded, base, spot }: { city: string; onClose: () => void; onAdded: () => void; base: Item | null; spot: { lat: number; lng: number } | null }) {
+export function AddPlace({ city, onClose, onAdded, base, spot, startOnFlight = false }: { city: string; onClose: () => void; onAdded: () => void; base: Item | null; spot: { lat: number; lng: number } | null; startOnFlight?: boolean }) {
   // Só usa a sua posição como referência se você já estiver na cidade; senão, a base.
   const here = spot && distanceMeters(spot, CITY_CENTER[city] ?? CITY_CENTER.Chicago) < 60000 ? spot : null;
   const baseAt = base && base.lat != null && base.lng != null ? { lat: base.lat, lng: base.lng } : null;
   const near = here ?? baseAt;
-  const [mode, setMode] = useState<"search" | "manual">("search");
+  const [mode, setMode] = useState<"search" | "manual" | "flight">(startOnFlight ? "flight" : "search");
   const [q, setQ] = useState(""), [results, setResults] = useState<PlaceResult[] | null>(null);
   const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [day, setDay] = useState("");
   const [m, setM] = useState({ title: "", category: "Passeio", address: "", note: "" }), [file, setFile] = useState<File | null>(null);
@@ -43,14 +44,15 @@ export function AddPlace({ city, onClose, onAdded, base, spot }: { city: string;
   return (
     <div className="sheet-back" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={`Adicionar lugar em ${city}`}>
-        <div className="sheet-head"><h2>Adicionar em {city}</h2><button className="icon-btn" onClick={onClose} aria-label="Fechar"><X size={20} /></button></div>
-        <div className="seg">
-          <button className={mode === "search" ? "on" : ""} onClick={() => setMode("search")}>Buscar no Google</button>
-          <button className={mode === "manual" ? "on" : ""} onClick={() => setMode("manual")}>Adicionar à mão</button>
+        <div className="sheet-head"><h2>{mode === "flight" ? "Adicionar voo" : `Adicionar em ${city}`}</h2><button className="icon-btn" onClick={onClose} aria-label="Fechar"><X size={20} /></button></div>
+        <div className="seg three">
+          <button className={mode === "search" ? "on" : ""} onClick={() => setMode("search")}>Buscar</button>
+          <button className={mode === "manual" ? "on" : ""} onClick={() => setMode("manual")}>À mão</button>
+          <button className={mode === "flight" ? "on" : ""} onClick={() => setMode("flight")}><Plane size={14} /> Voo</button>
         </div>
-        <label className="dayrow big">Dia sugerido (opcional)<input type="date" min="2026-11-19" value={day} onChange={(e) => setDay(e.target.value)} /></label>
+        {mode !== "flight" && <label className="dayrow big">Dia sugerido (opcional)<input type="date" min="2026-11-19" value={day} onChange={(e) => setDay(e.target.value)} /></label>}
         {msg && <p className="notice" role="alert">{msg}</p>}
-        {mode === "search" ? (
+        {mode === "flight" ? <AddFlight onSaved={() => { onAdded(); onClose(); }} onMessage={setMsg} /> : mode === "search" ? (
           <>
             <form className="searchbar" onSubmit={search}>
               <Search size={18} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`pizza, museu, parque em ${city}…`} aria-label="Buscar lugares" autoFocus />

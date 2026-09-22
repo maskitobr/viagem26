@@ -3,7 +3,7 @@ import { distanceMeters, validCoords } from "./geo";
 
 export type Place = { placeId: string; title: string; address: string; category: string; rating: number | null; ratingCount: number | null; priceLevel: string | null; mapUrl: string; photoName: string | null; summary: string | null; lat: number | null; lng: number | null; distance?: number };
 
-const centers: Record<City, { latitude: number; longitude: number }> = {
+const centers: Partial<Record<City, { latitude: number; longitude: number }>> = {
   Chicago: { latitude: 41.8781, longitude: -87.6298 },
   Dallas: { latitude: 32.7767, longitude: -96.797 },
   Orlando: { latitude: 28.5383, longitude: -81.3792 },
@@ -41,7 +41,7 @@ export async function searchPlaces(query: string, city: string, near?: { lat: nu
       "X-Goog-Api-Key": key,
       "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,places.photos,places.location,places.editorialSummary",
     },
-    body: JSON.stringify({ textQuery: `${query.slice(0, 80)} em ${city}`, languageCode: "pt-BR", pageSize: 10, locationBias: { circle: { center: near && validCoords(near.lat, near.lng) ? { latitude: near.lat, longitude: near.lng } : centers[city], radius: near ? 15000 : 30000 } } }),
+    body: JSON.stringify({ textQuery: city === "Voos" ? query.slice(0, 80) : `${query.slice(0, 80)} em ${city}`, languageCode: "pt-BR", pageSize: 10, locationBias: near && validCoords(near.lat, near.lng) ? { circle: { center: { latitude: near.lat, longitude: near.lng }, radius: 15000 } } : centers[city] ? { circle: { center: centers[city], radius: 30000 } } : undefined }),
   });
   if (!r.ok) throw new PlacesError("A busca do Google falhou. Tente de novo em instantes.");
   const data = (await r.json()) as { places?: unknown[] };
